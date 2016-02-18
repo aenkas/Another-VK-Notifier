@@ -1,7 +1,4 @@
-environment:
-  shortened_ver: 1.0.0.{build}
-
-version: $(shortened_ver)-{branch}
+version: 1.0.0.{build}-{branch}
 
 configuration:
   - Release
