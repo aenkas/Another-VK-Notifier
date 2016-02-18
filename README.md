@@ -1,2 +1,2 @@
-# Another-VK-Notifier
+# Another VK Notifier
 VK notifications app

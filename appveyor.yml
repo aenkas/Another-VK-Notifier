@@ -1,0 +1,10 @@
+environment:
+  shortened_ver: 1.0.0.{build}
+
+version: $(shortened_ver)-{branch}
+
+configuration:
+  - Release
+
+install:
+  - nuget restore
