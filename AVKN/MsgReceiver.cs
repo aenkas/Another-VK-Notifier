@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AVKN
 {
-    class MsgReceiver
+    public class MsgReceiver
     {
         public bool LogInVk(string login, string password)
         {

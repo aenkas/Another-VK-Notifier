@@ -5,17 +5,79 @@ using System.Text;
 
 namespace AVKN
 {
-    class Brain
+    public class Brain
     {
-        public bool NotifyAboutPersonal { get; set; }
+        bool notifyAboutPersonal;
+        bool notifyAboutDialogs;
+        bool notifyAboutGroups;
+        string login;
+        string password;
 
-        public bool NotifyAboutDialogs { get; set; }
+        public bool NotifyAboutPersonal
+        {
+            get
+            {
+                return notifyAboutPersonal;
+            }
+            set
+            {
+                notifyAboutPersonal = value;
+            }
+        }
 
-        public bool NotifyAboutGroups { get; set; }
+        public bool NotifyAboutDialogs
+        {
+            get
+            {
+                return notifyAboutDialogs;
+            }
+            set
+            {
+                notifyAboutDialogs = value;
+            }
+        }
 
-        public string Login { get; set; }
+        public bool NotifyAboutGroups
+        {
+            get
+            {
+                return notifyAboutGroups;
+            }
+            set
+            {
+                notifyAboutGroups = value;
+            }
+        }
 
-        public string Password { get; set; }
+        public string Login
+        {
+            get
+            {
+                return login;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+
+                login = value;
+            }
+        }
+
+        public string Password
+        {
+            get
+            {
+                return password;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+
+                password = value;
+            }
+        }
 
         public bool InitBrain(MsgReceiver mr, Notifier notifier)
         {
@@ -39,7 +101,11 @@ namespace AVKN
 
         public Brain()
         {
-
+            notifyAboutPersonal = true;
+            notifyAboutDialogs = true;
+            notifyAboutGroups = true;
+            login = "";
+            password = "";
         }
     }
 }

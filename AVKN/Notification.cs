@@ -5,13 +5,56 @@ using System.Text;
 
 namespace AVKN
 {
-    class Notification
+    public class Notification
     {
-        public string NotificationHeader { get; set; }
+        string notificationHeader;
+        string notificationText;
+        string notificationUrl;
 
-        public string NotificationText { get; set; }
+        public string NotificationHeader
+        {
+            get
+            {
+                return notificationHeader;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
 
-        public string NotificationUrl { get; set; }
+                notificationHeader = value;
+            }
+        }
+
+        public string NotificationText
+        {
+            get
+            {
+                return notificationText;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+
+                notificationText = value;
+            }
+        }
+
+        public string NotificationUrl
+        {
+            get
+            {
+                return notificationUrl;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+
+                notificationUrl = value;
+            }
+        }
 
         public bool AddMessage(Message m)
         {
@@ -30,7 +73,9 @@ namespace AVKN
 
         public Notification()
         {
-
+            notificationHeader = "";
+            notificationText = "";
+            notificationUrl = "";
         }
     }
 }

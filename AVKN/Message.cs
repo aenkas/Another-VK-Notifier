@@ -5,25 +5,101 @@ using System.Text;
 
 namespace AVKN
 {
-    enum MsgTypes
+    public enum MsgTypes
     {
         Private = 1,
         Dialog = 2,
         Group = 4
     }
 
-    class Message
+    public class Message
     {
-        public MsgTypes MsgType { get; set; }
+        MsgTypes msgType;
+        string senderName;
+        string msgText;
+        string msgUrl;
+        string domainUrl;
 
-        public string SenderName { get; set; }
+        public MsgTypes MsgType
+        {
+            get
+            {
+                return msgType;
+            }
 
-        public string MsgText { get; set; }
+            set
+            {
+                msgType = value;
+            }
+        }
 
-        public string MsgUrl { get; set; }
+        public string SenderName
+        {
+            get
+            {
+                return senderName;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
 
-        public string DomainUrl { get; set; }
+                senderName = value;
+            }
+        }
 
-        public Message() { }
+        public string MsgText
+        {
+            get
+            {
+                return msgText;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+
+                msgText = value;
+            }
+        }
+
+        public string MsgUrl
+        {
+            get
+            {
+                return msgUrl;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+
+                msgUrl = value;
+            }
+        }
+
+        public string DomainUrl
+        {
+            get
+            {
+                return domainUrl;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException();
+
+                domainUrl = value;
+            }
+        }
+
+        public Message()
+        {
+            msgType = MsgTypes.Private;
+            senderName = "";
+            msgText = "";
+            msgUrl = "";
+            domainUrl = "";
+        }
     }
 }

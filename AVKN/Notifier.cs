@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AVKN
 {
-    class Notifier
+    public class Notifier
     {
         public bool ShowNotification(Notification n)
         {
