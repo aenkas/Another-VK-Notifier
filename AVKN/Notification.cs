@@ -74,11 +74,61 @@ namespace AVKN
         public void ClearMsgQueue()
         {
             messages.Clear();
+            notificationHeader = "";
+            notificationText = "";
+            notificationUrl = "";
         }
 
         public bool BuildNotification()
         {
-            return false;
+            if(messages.Count < 1)
+                return false;
+
+            notificationHeader = "Сообщения ВКонтакте";
+
+            if (messages.Count == 1)
+            {
+                Message firstMessage = messages[0];
+
+                notificationText = firstMessage.SenderName + ": " + firstMessage.MsgText;
+                notificationUrl = firstMessage.MsgUrl;
+            }
+            else
+            {
+                int typesOfMessages = 0;
+                string domainUrl = "";
+
+                notificationText = "У вас "+messages.Count+" непрочитанных сообщений";
+
+                for(int i = 0; i < messages.Count; i++) {
+                    typesOfMessages = typesOfMessages | (int)messages[i].MsgType;
+
+                    if (string.Equals(domainUrl, ""))
+                    {
+                        domainUrl = messages[i].DomainUrl;
+                    }
+                    else if (!string.Equals(domainUrl, messages[i].DomainUrl))
+                    {
+                        switch (typesOfMessages)
+                        {
+                            case (int)MsgTypes.Personal:
+                            case (int)MsgTypes.Dialog:
+                                domainUrl = "https://vk.com/im";
+                                break;
+                            case (int)MsgTypes.Group:
+                                domainUrl = "https://vk.com/groups";
+                                break;
+                            default:
+                                domainUrl = "https://vk.com/";
+                                break;
+                        }
+                    }
+                }
+
+                notificationUrl = domainUrl;
+            }
+
+            return true;
         }
 
         public Notification()
@@ -86,6 +136,7 @@ namespace AVKN
             notificationHeader = "";
             notificationText = "";
             notificationUrl = "";
+            messages = new List<Message>();
         }
     }
 }
