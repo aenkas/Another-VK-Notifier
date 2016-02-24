@@ -7,7 +7,7 @@ namespace AVKN
 {
     public enum MsgTypes
     {
-        Private = 1,
+        Personal = 1,
         Dialog = 2,
         Group = 4
     }
@@ -95,7 +95,7 @@ namespace AVKN
 
         public Message()
         {
-            msgType = MsgTypes.Private;
+            msgType = MsgTypes.Personal;
             senderName = "";
             msgText = "";
             msgUrl = "";

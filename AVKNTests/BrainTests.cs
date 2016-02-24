@@ -21,11 +21,11 @@ namespace AVKNTests
             Assert.IsNotNull(brain.Login);
             Assert.IsNotNull(brain.Password);
 
-            Assert.AreEqual(brain.NotifyAboutPersonal, true);
-            Assert.AreEqual(brain.NotifyAboutDialogs, true);
-            Assert.AreEqual(brain.NotifyAboutGroups, true);
-            Assert.AreEqual(brain.Login, "");
-            Assert.AreEqual(brain.Password, "");
+            Assert.AreEqual(true, brain.NotifyAboutPersonal);
+            Assert.AreEqual(true, brain.NotifyAboutDialogs);
+            Assert.AreEqual(true, brain.NotifyAboutGroups);
+            Assert.AreEqual("", brain.Login);
+            Assert.AreEqual("", brain.Password);
         }
 
         [TestMethod]
@@ -38,8 +38,8 @@ namespace AVKNTests
             brain.Login = login;
             brain.Password = password;
 
-            Assert.AreEqual(brain.Login, login);
-            Assert.AreEqual(brain.Password, password);
+            Assert.AreEqual(login, brain.Login);
+            Assert.AreEqual(password, brain.Password);
 
             for (int i = 0; i < 8; i++)
             {
@@ -51,9 +51,9 @@ namespace AVKNTests
                 brain.NotifyAboutDialogs = notifyAboutDialogs;
                 brain.NotifyAboutGroups = notifyAboutGroups;
 
-                Assert.AreEqual(brain.NotifyAboutPersonal, notifyAboutPersonal);
-                Assert.AreEqual(brain.NotifyAboutDialogs, notifyAboutDialogs);
-                Assert.AreEqual(brain.NotifyAboutGroups, notifyAboutGroups);
+                Assert.AreEqual(notifyAboutPersonal, brain.NotifyAboutPersonal);
+                Assert.AreEqual(notifyAboutDialogs, brain.NotifyAboutDialogs);
+                Assert.AreEqual(notifyAboutGroups, brain.NotifyAboutGroups);
             }
             
         }

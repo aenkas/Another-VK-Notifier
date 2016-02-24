@@ -11,6 +11,8 @@ namespace AVKN
         string notificationText;
         string notificationUrl;
 
+        List<Message> messages;
+
         public string NotificationHeader
         {
             get
@@ -58,12 +60,20 @@ namespace AVKN
 
         public bool AddMessage(Message m)
         {
-            return false;
+            try
+            {
+                messages.Add(m);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return true;
         }
 
         public void ClearMsgQueue()
         {
-            throw new NotImplementedException();
+            messages.Clear();
         }
 
         public bool BuildNotification()

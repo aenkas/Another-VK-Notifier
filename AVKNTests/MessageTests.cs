@@ -21,11 +21,11 @@ namespace AVKNTests
             Assert.IsNotNull(message.MsgUrl);
             Assert.IsNotNull(message.SenderName);
 
-            Assert.AreEqual(message.DomainUrl, "");
-            Assert.AreEqual(message.MsgText, "");
-            Assert.AreEqual(message.MsgType, AVKN.MsgTypes.Private);
-            Assert.AreEqual(message.MsgUrl, "");
-            Assert.AreEqual(message.SenderName, "");
+            Assert.AreEqual("", message.DomainUrl);
+            Assert.AreEqual("", message.MsgText);
+            Assert.AreEqual(MsgTypes.Personal, message.MsgType);
+            Assert.AreEqual("", message.MsgUrl);
+            Assert.AreEqual("", message.SenderName);
         }
 
         [TestMethod]
@@ -44,11 +44,11 @@ namespace AVKNTests
             message.MsgUrl = msgUrl;
             message.SenderName = senderName;
 
-            Assert.AreEqual(message.DomainUrl, domainUrl);
-            Assert.AreEqual(message.MsgText, msgText);
-            Assert.AreEqual(message.MsgType, msgType);
-            Assert.AreEqual(message.MsgUrl, msgUrl);
-            Assert.AreEqual(message.SenderName, senderName);
+            Assert.AreEqual(domainUrl, message.DomainUrl);
+            Assert.AreEqual(msgText, message.MsgText);
+            Assert.AreEqual(msgType, message.MsgType);
+            Assert.AreEqual(msgUrl, message.MsgUrl);
+            Assert.AreEqual(senderName, message.SenderName);
         }
 
         [TestMethod]
