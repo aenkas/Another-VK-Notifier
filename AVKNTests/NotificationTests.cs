@@ -88,6 +88,93 @@ namespace AVKNTests
         }
 
         [TestMethod]
+        public void BuildNotification_Correctly_Works_With_Messages_Of_One_Type()
+        {
+            Notification notification = new Notification();
+            Message msg1 = new Message();
+            Message msg2 = new Message();
+
+            msg1.DomainUrl = "msg1.DomainUrl";
+            msg1.MsgText = "msg1.MsgText";
+            msg1.MsgUrl = "msg1.MsgUrl";
+            msg1.SenderName = "msg1.SenderName";
+
+            msg2.DomainUrl = "msg2.DomainUrl";
+            msg2.MsgText = "msg2.MsgText";
+            msg2.MsgUrl = "msg2.MsgUrl";
+            msg2.SenderName = "msg2.SenderName";
+
+            // Разные domainUrl, тип сообщения Personal
+            msg1.MsgType = MsgTypes.Personal;
+            msg2.MsgType = MsgTypes.Personal;
+            notification.ClearMsgQueue();
+            notification.AddMessage(msg1);
+            notification.AddMessage(msg2);
+            notification.BuildNotification();
+            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
+            Assert.AreEqual("https://vk.com/im", notification.NotificationUrl);
+
+            // Разные domainUrl, тип сообщения Dialog
+            msg1.MsgType = MsgTypes.Dialog;
+            msg2.MsgType = MsgTypes.Dialog;
+            notification.ClearMsgQueue();
+            notification.AddMessage(msg1);
+            notification.AddMessage(msg2);
+            notification.BuildNotification();
+            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
+            Assert.AreEqual("https://vk.com/im", notification.NotificationUrl);
+
+            // Разные domainUrl, тип сообщения Group
+            msg1.MsgType = MsgTypes.Group;
+            msg2.MsgType = MsgTypes.Group;
+            notification.ClearMsgQueue();
+            notification.AddMessage(msg1);
+            notification.AddMessage(msg2);
+            notification.BuildNotification();
+            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
+            Assert.AreEqual("https://vk.com/groups", notification.NotificationUrl);
+
+            //Устанавливаем общий domainUrl
+            msg2.DomainUrl = msg1.DomainUrl;
+
+            // Один domainUrl, тип сообщения Personal
+            msg1.MsgType = MsgTypes.Personal;
+            msg2.MsgType = MsgTypes.Personal;
+            notification.ClearMsgQueue();
+            notification.AddMessage(msg1);
+            notification.AddMessage(msg2);
+            notification.BuildNotification();
+            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
+            Assert.AreEqual(msg1.DomainUrl, notification.NotificationUrl);
+
+            // Один domainUrl, тип сообщения Dialog
+            msg1.MsgType = MsgTypes.Dialog;
+            msg2.MsgType = MsgTypes.Dialog;
+            notification.ClearMsgQueue();
+            notification.AddMessage(msg1);
+            notification.AddMessage(msg2);
+            notification.BuildNotification();
+            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
+            Assert.AreEqual(msg1.DomainUrl, notification.NotificationUrl);
+
+            // Один domainUrl, тип сообщения Group
+            msg1.MsgType = MsgTypes.Group;
+            msg2.MsgType = MsgTypes.Group;
+            notification.ClearMsgQueue();
+            notification.AddMessage(msg1);
+            notification.AddMessage(msg2);
+            notification.BuildNotification();
+            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
+            Assert.AreEqual(msg1.DomainUrl, notification.NotificationUrl);
+        }
+
+        [TestMethod]
         public void ClearMsgQueue_Makes_BuildNotification_False()
         {
             Notification notification = new Notification();
