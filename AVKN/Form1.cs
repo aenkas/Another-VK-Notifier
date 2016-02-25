@@ -25,12 +25,17 @@ namespace AVKN
             notifier = new Notifier();
             brain = new Brain();
 
-            brain.InitBrain(receiver, notifier);
+            if (!notifier.InitNotifier())
+                throw new Exception();
+
+            if (!brain.InitBrain(receiver, notifier))
+                throw new Exception();
         }
 
         void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             brain.SaveSettings();
+            notifier.DestroyNotifier();
         }
 
         private void Form1_Load(object sender, EventArgs e)

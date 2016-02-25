@@ -11,6 +11,27 @@ namespace AVKNTests
     public class BrainTests
     {
         [TestMethod]
+        public void IncreaseEntropy_Doesnt_Work_Without_Initialization()
+        {
+            Brain brain = new Brain();
+
+            Assert.IsFalse(brain.IncreaseEntropy());
+        }
+
+        [TestMethod]
+        public void InitBrain_Arguments_Testing()
+        {
+            Brain brain = new Brain();
+            MsgReceiver mr = new MsgReceiver();
+            Notifier notifier = new Notifier();
+
+            Assert.IsFalse(brain.InitBrain(null, null));
+            Assert.IsFalse(brain.InitBrain(mr, null));
+            Assert.IsFalse(brain.InitBrain(null, notifier));
+            Assert.IsTrue(brain.InitBrain(mr, notifier));
+        }
+
+        [TestMethod]
         public void Constructor_PropertiesNotNull_Tests()
         {
             Brain brain = new Brain();

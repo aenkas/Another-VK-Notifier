@@ -12,6 +12,9 @@ namespace AVKN
         bool notifyAboutGroups;
         string login;
         string password;
+        MsgReceiver brainsMessageReceiver;
+        Notifier brainsNotifier;
+        bool isInit;
 
         public bool NotifyAboutPersonal
         {
@@ -81,12 +84,53 @@ namespace AVKN
 
         public bool InitBrain(MsgReceiver mr, Notifier notifier)
         {
-            return false;
+            if(mr == null || notifier == null)
+                return false;
+
+            brainsMessageReceiver = mr;
+            brainsNotifier = notifier;
+            isInit = true;
+
+            return true;
         }
 
         public bool IncreaseEntropy()
         {
-            return false;
+            Notification notification = new Notification();
+
+            if (!isInit)
+                return false;
+
+            if (!brainsMessageReceiver.IsLogged())
+                return false;
+
+            brainsMessageReceiver.RetrieveMessages();
+
+            notification.ClearMsgQueue();
+
+            while (brainsMessageReceiver.GetMessagesCount() > 0)
+            {
+                Message message = brainsMessageReceiver.PopFirstMsg();
+
+                if (message == null)
+                    break;
+
+                if ((message.MsgType == MsgTypes.Personal) && (notifyAboutPersonal == false))
+                    continue;
+
+                if ((message.MsgType == MsgTypes.Dialog) && (notifyAboutDialogs == false))
+                    continue;
+
+                if ((message.MsgType == MsgTypes.Group) && (notifyAboutGroups == false))
+                    continue;
+
+                notification.AddMessage(message);
+            }
+
+            if (notification.BuildNotification())
+                brainsNotifier.ShowNotification(notification);
+
+            return true;
         }
 
         public bool LoadSettings()
@@ -106,6 +150,7 @@ namespace AVKN
             notifyAboutGroups = true;
             login = "";
             password = "";
+            isInit = false;
         }
     }
 }
