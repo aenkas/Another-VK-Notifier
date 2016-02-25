@@ -1,5 +1,7 @@
 version: 1.0.0.{build}
 
+skip_tags: true
+
 assembly_info:
   patch: true
   file: AVKN*\Properties\AssemblyInfo.cs
@@ -12,3 +14,29 @@ configuration:
 
 install:
   - nuget restore AVKN\AVKN.sln
+
+after_build:
+  - cmd: dir AVKN\bin\Release\app.publish\
+  - msbuild AVKN\AVKN.csproj /target:publish
+  - cmd: dir AVKN\bin\Release\app.publish\
+  - 7z a AVKN-Setup.zip %APPVEYOR_BUILD_FOLDER%\AVKN\bin\Release\app.publish\**\*
+  - 7z a AVKN-Setup.zip %APPVEYOR_BUILD_FOLDER%\AVKN\bin\Release\app.publish\*
+  
+  artifacts:
+  - path: AVKN-Setup.zip
+    name: Setup
+    type: zip
+
+deploy:
+  - provider: GitHub
+    release: AVKN-v$(appveyor_build_version)
+    tag: v$(appveyor_build_version)
+    description: 'Release of Another VK Notifier v$(appveyor_build_version)'
+    auth_token:
+      secure: ObDKzIYH03Rudq6osiuj3deNQaJt9bL1Q1cp3QZVwgmBmuya4gqy6IUhuVXHnKbN # your encrypted token from GitHub
+    artifact: Setup
+    draft: false
+    prerelease: false
+    on:
+      branch: release                 # release from master branch only
+#     appveyor_repo_tag: true        # deploy on tag push only
