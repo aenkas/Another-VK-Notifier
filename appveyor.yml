@@ -22,7 +22,7 @@ after_build:
   - 7z a AVKN-Setup.zip %APPVEYOR_BUILD_FOLDER%\AVKN\bin\Release\app.publish\**\*
   - 7z a AVKN-Setup.zip %APPVEYOR_BUILD_FOLDER%\AVKN\bin\Release\app.publish\*
   
-  artifacts:
+artifacts:
   - path: AVKN-Setup.zip
     name: Setup
     type: zip
