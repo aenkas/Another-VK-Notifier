@@ -112,8 +112,9 @@ namespace AVKN
 
             if (receiver.LogInVk(brain.Login, brain.Password))
             {
-                if (!brain.SaveSettings())
-                    MessageBox.Show("Невозможно сохранить логин и пароль");
+                brain.SaveSettings();
+
+                notifier.ShowDefault();
             }
             else
             {
