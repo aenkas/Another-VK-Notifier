@@ -10,7 +10,7 @@ namespace AVKN
     public class Notifier
     {
         NotifyIcon ni;
-        const string authErrorText = "Пользователь не аутентифицирован";
+        const string authErrorText = "Пользователь не авторизован";
         const string defaultText = "Нет новых уведомлений";
 
         public bool ShowNotification(Notification n)
@@ -60,6 +60,16 @@ namespace AVKN
         {
             ni.Dispose();
             ni = null;
+
+            return true;
+        }
+
+        public bool SetContextMenu(ContextMenu niContextMenu)
+        {
+            if (ni == null)
+                return false;
+
+            ni.ContextMenu = niContextMenu;
 
             return true;
         }
