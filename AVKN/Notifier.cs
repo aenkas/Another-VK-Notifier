@@ -46,7 +46,7 @@ namespace AVKN
                 return false;
 
             ni.Text = defaultText;
-            launchUrl = "";
+            launchUrl = "https://vk.com/";
 
             return true;
         }
