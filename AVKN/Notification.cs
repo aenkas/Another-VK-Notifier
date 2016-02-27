@@ -81,7 +81,7 @@ namespace AVKN
 
         public bool BuildNotification()
         {
-            if(messages.Count < 1)
+            if (messages.Count < 1)
                 return false;
 
             if (messages.Count == 1)
@@ -98,9 +98,10 @@ namespace AVKN
                 string domainUrl = "";
 
                 notificationHeader = "";
-                notificationText = "У вас "+messages.Count+" непрочитанных сообщений";
+                notificationText = "У вас " + messages.Count + " непрочитанных сообщений";
 
-                for(int i = 0; i < messages.Count; i++) {
+                for (int i = 0; i < messages.Count; i++)
+                {
                     typesOfMessages = typesOfMessages | (int)messages[i].MsgType;
 
                     if (string.Equals(domainUrl, ""))
@@ -124,10 +125,8 @@ namespace AVKN
                         }
                     }
                 }
-
                 notificationUrl = domainUrl;
             }
-
             return true;
         }
 
