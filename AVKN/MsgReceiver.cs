@@ -15,6 +15,9 @@ namespace AVKN
 {
     public class MsgReceiver
     {
+        private bool isLogged;
+        private Stack<Message> messageStack = new Stack<Message>();
+        private VkApi vk = new VkApi();
         public bool LogInVk(string login, string password)
         {
             try
@@ -22,12 +25,10 @@ namespace AVKN
                 var auth = new ApiAuthParams();
 
                 Settings scope = Settings.All;
-                VkApi vk = new VkApi();
                 auth.Login = login;
                 auth.Password = password;
                 auth.ApplicationId = 5322484;
                 auth.Settings = scope;
-
                 vk.Authorize(auth);
             }
             catch (Exception e)
@@ -35,32 +36,50 @@ namespace AVKN
                 MessageBox.Show(e.Message);
                 return false;
             }
-            return true;
+            return (isLogged = true);
         }
 
         public bool IsLogged()
         {
-            return false;
+            return isLogged;
         }
 
         public bool RetrieveMessages()
         {
-            return false;
-        }
+            try {
+                int offset = 0;
+                var messages = vk.Messages.Get(0, out offset, 100, 1, new TimeSpan(0), 0);
+                foreach (VkNet.Model.Message m in messages)
+                {
+                    Message msg = new Message();
+                    msg.MsgText = m.Body;
+                    //msgtypes - хз
+                    //msg.MsgUrl = m.
+                    messageStack.Push(msg);
+                }
+            }
+            catch(Exception e)
+            {
+                MessageBox.Show(e.Message);
+                return false;
+            }
+            return true;
+         }
 
         public int GetMessagesCount()
         {
-            return 0;
+            return messageStack.Count;
         }
 
         public Message PopFirstMsg()
         {
-            return new Message();
+            // if messageStack.Count == 0, then it will throw it's own exception when popping, so, do not handle this case?
+            return messageStack.Pop();
         }
 
         public void ClearMsgStack()
         {
-            throw new NotImplementedException();
+            messageStack.Clear();
         }
 
         public MsgReceiver()
