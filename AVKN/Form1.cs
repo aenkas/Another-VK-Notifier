@@ -40,6 +40,9 @@ namespace AVKN
             if (!notifier.SetContextMenu(contextMenu))
                 throw new Exception();
 
+            if (!notifier.SetLaunchCallback(LaunchCallback))
+                throw new Exception();
+
             if (!brain.InitBrain(receiver, notifier))
                 throw new Exception();
         }
@@ -65,6 +68,20 @@ namespace AVKN
 
             if (!brain.IncreaseEntropy())
                 MessageBox.Show("Cant receive new messages");
+        }
+
+        // Функция, вызываемая в notifier при нажатии левой кнопкой мыши перед открытием браузера.
+        // Возвращает true, если требуется открытие браузера, иначе false
+        private bool LaunchCallback()
+        {
+            if (!receiver.IsLogged())
+            {
+                ShowLoginWindow();
+
+                return false;
+            }
+
+            return true;
         }
 
         private void SetupNotifyIconMenus()
@@ -108,6 +125,9 @@ namespace AVKN
         {
             LogInVKForm form = new LogInVKForm(brain);
 
+            if (!notifier.SetContextMenu(null))
+                throw new Exception();
+
             form.ShowDialog();
 
             if (receiver.LogInVk(brain.Login, brain.Password))
@@ -125,6 +145,9 @@ namespace AVKN
                 brain.Login = "";
                 brain.Password = "";
             }
+
+            if (!notifier.SetContextMenu(contextMenu))
+                throw new Exception();
         }
 
         private void LogInVK(object sender, EventArgs e)
