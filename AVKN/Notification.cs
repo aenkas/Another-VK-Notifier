@@ -84,13 +84,12 @@ namespace AVKN
             if(messages.Count < 1)
                 return false;
 
-            notificationHeader = "Сообщения ВКонтакте";
-
             if (messages.Count == 1)
             {
                 Message firstMessage = messages[0];
 
-                notificationText = firstMessage.SenderName + ": " + firstMessage.MsgText;
+                notificationHeader = firstMessage.SenderName;
+                notificationText = firstMessage.MsgText;
                 notificationUrl = firstMessage.MsgUrl;
             }
             else
@@ -98,6 +97,7 @@ namespace AVKN
                 int typesOfMessages = 0;
                 string domainUrl = "";
 
+                notificationHeader = "";
                 notificationText = "У вас "+messages.Count+" непрочитанных сообщений";
 
                 for(int i = 0; i < messages.Count; i++) {

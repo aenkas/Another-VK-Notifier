@@ -25,8 +25,8 @@ namespace AVKNTests
             messagePersonal.DomainUrl = "http://example.com/A";
             notification.AddMessage(messagePersonal);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
-            Assert.AreEqual(messagePersonal.SenderName + ": " + messagePersonal.MsgText, notification.NotificationText);
+            Assert.AreEqual(messagePersonal.SenderName, notification.NotificationHeader);
+            Assert.AreEqual(messagePersonal.MsgText, notification.NotificationText);
             Assert.AreEqual(messagePersonal.MsgUrl, notification.NotificationUrl);
 
             messageDialog.MsgType = MsgTypes.Dialog;
@@ -37,8 +37,8 @@ namespace AVKNTests
             notification.ClearMsgQueue();
             notification.AddMessage(messageDialog);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
-            Assert.AreEqual(messageDialog.SenderName + ": " + messageDialog.MsgText, notification.NotificationText);
+            Assert.AreEqual(messageDialog.SenderName, notification.NotificationHeader);
+            Assert.AreEqual(messageDialog.MsgText, notification.NotificationText);
             Assert.AreEqual(messageDialog.MsgUrl, notification.NotificationUrl);
 
             messageGroup.MsgType = MsgTypes.Group;
@@ -49,15 +49,15 @@ namespace AVKNTests
             notification.ClearMsgQueue();
             notification.AddMessage(messageGroup);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
-            Assert.AreEqual(messageGroup.SenderName + ": " + messageGroup.MsgText, notification.NotificationText);
+            Assert.AreEqual(messageGroup.SenderName, notification.NotificationHeader);
+            Assert.AreEqual(messageGroup.MsgText, notification.NotificationText);
             Assert.AreEqual(messageGroup.MsgUrl, notification.NotificationUrl);
 
             notification.ClearMsgQueue();
             notification.AddMessage(messagePersonal);
             notification.AddMessage(messageDialog);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual("https://vk.com/", notification.NotificationUrl);
 
@@ -65,7 +65,7 @@ namespace AVKNTests
             notification.AddMessage(messagePersonal);
             notification.AddMessage(messageGroup);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual("https://vk.com/", notification.NotificationUrl);
 
@@ -73,7 +73,7 @@ namespace AVKNTests
             notification.AddMessage(messageDialog);
             notification.AddMessage(messageGroup);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual("https://vk.com/", notification.NotificationUrl);
 
@@ -82,7 +82,7 @@ namespace AVKNTests
             notification.AddMessage(messagePersonal);
             notification.AddMessage(messageGroup);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 3 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual("https://vk.com/", notification.NotificationUrl);
         }
@@ -111,7 +111,7 @@ namespace AVKNTests
             notification.AddMessage(msg1);
             notification.AddMessage(msg2);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual("https://vk.com/im", notification.NotificationUrl);
 
@@ -122,7 +122,7 @@ namespace AVKNTests
             notification.AddMessage(msg1);
             notification.AddMessage(msg2);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual("https://vk.com/im", notification.NotificationUrl);
 
@@ -133,7 +133,7 @@ namespace AVKNTests
             notification.AddMessage(msg1);
             notification.AddMessage(msg2);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual("https://vk.com/groups", notification.NotificationUrl);
 
@@ -147,7 +147,7 @@ namespace AVKNTests
             notification.AddMessage(msg1);
             notification.AddMessage(msg2);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual(msg1.DomainUrl, notification.NotificationUrl);
 
@@ -158,7 +158,7 @@ namespace AVKNTests
             notification.AddMessage(msg1);
             notification.AddMessage(msg2);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual(msg1.DomainUrl, notification.NotificationUrl);
 
@@ -169,7 +169,7 @@ namespace AVKNTests
             notification.AddMessage(msg1);
             notification.AddMessage(msg2);
             notification.BuildNotification();
-            Assert.AreEqual("Сообщения ВКонтакте", notification.NotificationHeader);
+            Assert.AreEqual("", notification.NotificationHeader);
             Assert.AreEqual("У вас 2 непрочитанных сообщений", notification.NotificationText);
             Assert.AreEqual(msg1.DomainUrl, notification.NotificationUrl);
         }
