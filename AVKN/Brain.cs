@@ -153,6 +153,11 @@ namespace AVKN
             return false;
         }
 
+        public void BrainDrain()
+        {
+            lastIds.Clear();
+        }
+
         public Brain()
         {
             notifyAboutPersonal = true;

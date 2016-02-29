@@ -132,6 +132,7 @@ namespace AVKN
 
             if (receiver.LogInVk(brain.Login, brain.Password))
             {
+                brain.BrainDrain();
                 brain.SaveSettings();
 
                 notifier.ShowDefault();

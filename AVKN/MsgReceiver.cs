@@ -52,6 +52,7 @@ namespace AVKN
         {
             /*try */{
                 MessagesGetParams vkMsgParams = new MessagesGetParams();
+                List<long> userIdsToGet = new List<long>(); 
 
                 vkMsgParams.Count = 100;
                 vkMsgParams.Offset = 0;
@@ -59,7 +60,34 @@ namespace AVKN
                 vkMsgParams.Filters = MessagesFilter.All;
 
                 MessagesGetObject vkMessages = vk.Messages.Get(vkMsgParams);//vk.Messages.Get(0, out offset, 100, 0, new TimeSpan(0), 0);
-                
+
+                // Получение списка userIdsToGet - id пользователей, которых надо получить с сервера
+                foreach (var vkMessage in vkMessages.Messages)
+                {
+                    long vkMessageUserId;
+
+                    if (vkMessage.UserId.HasValue)
+                    {
+                        vkMessageUserId = vkMessage.UserId.Value;
+
+                        if ((!usersDict.ContainsKey(vkMessageUserId)) && (!userIdsToGet.Contains(vkMessageUserId)))
+                            userIdsToGet.Add(vkMessageUserId);
+                    }
+                }
+
+                try
+                {
+                    var vkUsers = vk.Users.Get(userIdsToGet);
+
+                    foreach(var vkUser in vkUsers)
+                    {
+                        usersDict[vkUser.Id] = vkUser;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
                 foreach (var vkMessage in vkMessages.Messages)
                 {
                     long vkMessageUserId = 0;
@@ -73,20 +101,6 @@ namespace AVKN
                     if (vkMessage.UserId.HasValue)
                     {
                         vkMessageUserId = vkMessage.UserId.Value;
-
-                        if (!usersDict.ContainsKey(vkMessageUserId))
-                        {
-                            try
-                            {
-                                User vkUser = vk.Users.Get(vkMessageUserId);
-
-                                usersDict[vkMessageUserId] = vkUser;
-                            }
-                            catch (Exception)
-                            {
-
-                            }
-                        }
 
                         if (usersDict.ContainsKey(vkMessageUserId))
                         {

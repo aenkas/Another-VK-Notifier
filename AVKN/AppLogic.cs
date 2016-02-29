@@ -14,6 +14,7 @@ namespace AVKN
         Brain brain;
         ContextMenu contextMenu;
         System.Timers.Timer appTimer;
+        System.Object lockObject;
 
         public void RunApp()
         {
@@ -54,35 +55,44 @@ namespace AVKN
 
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
-            if (!receiver.IsLogged())
+            lock (lockObject)
             {
-                //MessageBox.Show("You must log in before receiving messages");
+                if (!receiver.IsLogged())
+                {
+                    //MessageBox.Show("You must log in before receiving messages");
 
-                return;
+                    return;
+                }
+
+                if (!brain.IncreaseEntropy())
+                    return;// MessageBox.Show("Cant receive new messages");
             }
-
-            if (!brain.IncreaseEntropy())
-                return;// MessageBox.Show("Cant receive new messages");
         }
 
         private void AppExitEvent(object sender, EventArgs e)
         {
-            brain.SaveSettings();
-            notifier.DestroyNotifier();
+            lock (lockObject)
+            {
+                brain.SaveSettings();
+                notifier.DestroyNotifier();
+            }
         }
 
         // Функция, вызываемая в notifier при нажатии левой кнопкой мыши перед открытием браузера.
         // Возвращает true, если требуется открытие браузера, иначе false
         private bool LaunchCallback()
         {
-            if (!receiver.IsLogged())
+            lock (lockObject)
             {
-                ShowLoginWindow();
+                if (!receiver.IsLogged())
+                {
+                    ShowLoginWindow();
 
-                return false;
+                    return false;
+                }
+
+                return true;
             }
-
-            return true;
         }
 
         private void SetupNotifyIconMenus()
@@ -133,6 +143,7 @@ namespace AVKN
 
             if (receiver.LogInVk(brain.Login, brain.Password))
             {
+                brain.BrainDrain();
                 brain.SaveSettings();
 
                 notifier.ShowDefault();
@@ -153,70 +164,90 @@ namespace AVKN
 
         private void LogInVK(object sender, EventArgs e)
         {
-            MenuItem menuItem = (MenuItem)sender;
-
-            ShowLoginWindow();
-
-            /*if(receiver.IsLogged())
+            lock (lockObject)
             {
-                menuItem.Text = "Сменить аккаунт";
-            } else
-            {
-                menuItem.Text = "Войти";
-            }*/
+                MenuItem menuItem = (MenuItem)sender;
+
+                ShowLoginWindow();
+
+                /*if(receiver.IsLogged())
+                {
+                    menuItem.Text = "Сменить аккаунт";
+                } else
+                {
+                    menuItem.Text = "Войти";
+                }*/
+            }
         }
 
         private void NotifyAboutDialogsCheckbox(object sender, EventArgs e)
         {
-            MenuItem menuItem = (MenuItem)sender;
+            lock (lockObject)
+            {
+                MenuItem menuItem = (MenuItem)sender;
 
-            if (menuItem.Checked == true)
-            {
-                menuItem.Checked = false;
-                brain.NotifyAboutDialogs = false;
-            }
-            else
-            {
-                menuItem.Checked = true;
-                brain.NotifyAboutDialogs = true;
+                if (menuItem.Checked == true)
+                {
+                    menuItem.Checked = false;
+                    brain.NotifyAboutDialogs = false;
+                }
+                else
+                {
+                    menuItem.Checked = true;
+                    brain.NotifyAboutDialogs = true;
+                }
             }
         }
 
         private void NotifyAboutPersonalCheckbox(object sender, EventArgs e)
         {
-            MenuItem menuItem = (MenuItem)sender;
+            lock (lockObject)
+            {
+                MenuItem menuItem = (MenuItem)sender;
 
-            if (menuItem.Checked == true)
-            {
-                menuItem.Checked = false;
-                brain.NotifyAboutPersonal = false;
-            }
-            else
-            {
-                menuItem.Checked = true;
-                brain.NotifyAboutPersonal = true;
+                if (menuItem.Checked == true)
+                {
+                    menuItem.Checked = false;
+                    brain.NotifyAboutPersonal = false;
+                }
+                else
+                {
+                    menuItem.Checked = true;
+                    brain.NotifyAboutPersonal = true;
+                }
             }
         }
 
         private void NotifyAboutGroupsCheckbox(object sender, EventArgs e)
         {
-            MenuItem menuItem = (MenuItem)sender;
+            lock (lockObject)
+            {
+                MenuItem menuItem = (MenuItem)sender;
 
-            if (menuItem.Checked == true)
-            {
-                menuItem.Checked = false;
-                brain.NotifyAboutGroups = false;
-            }
-            else
-            {
-                menuItem.Checked = true;
-                brain.NotifyAboutGroups = true;
+                if (menuItem.Checked == true)
+                {
+                    menuItem.Checked = false;
+                    brain.NotifyAboutGroups = false;
+                }
+                else
+                {
+                    menuItem.Checked = true;
+                    brain.NotifyAboutGroups = true;
+                }
             }
         }
 
         private void ExitApplication(object sender, EventArgs e)
         {
-            Application.Exit();
+            lock (lockObject)
+            {
+                Application.Exit();
+            }
+        }
+
+        public AppLogic()
+        {
+            lockObject = new System.Object();
         }
     }
 }
