@@ -50,109 +50,126 @@ namespace AVKN
 
         public bool RetrieveMessages()
         {
-            /*try */{
-                MessagesGetParams vkMsgParams = new MessagesGetParams();
-                List<long> userIdsToGet = new List<long>(); 
+            if (!isLogged)
+                return false;
 
-                vkMsgParams.Count = 100;
-                vkMsgParams.Offset = 0;
-                vkMsgParams.TimeOffset = 0;
-                vkMsgParams.Filters = MessagesFilter.All;
+            List<long> userIdsToGet = new List<long>();
 
-                MessagesGetObject vkMessages = vk.Messages.Get(vkMsgParams);//vk.Messages.Get(0, out offset, 100, 0, new TimeSpan(0), 0);
+            // Чтение сообщений
+            MessagesGetParams vkMsgParams = new MessagesGetParams();
 
-                // Получение списка userIdsToGet - id пользователей, которых надо получить с сервера
-                foreach (var vkMessage in vkMessages.Messages)
+            vkMsgParams.Count = 100;
+            vkMsgParams.Offset = 0;
+            vkMsgParams.TimeOffset = 0;
+            vkMsgParams.Filters = MessagesFilter.All;
+
+            MessagesGetObject vkMessages;
+            try
+            {
+                vkMessages = vk.Messages.Get(vkMsgParams);//vk.Messages.Get(0, out offset, 100, 0, new TimeSpan(0), 0);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            // Чтение постов в группах
+            /*Group vkGroups = vk.Groups.Get(vk.UserId.Value);
+
+            foreach (var vkGroup in vkGroups)
+            {
+                WallGetParams vkWallParams = new WallGetParams();
+
+                WallGetObject vkWalls = vk.Wall.Get(vkWallParams);
+            }*/
+
+            // Получение списка userIdsToGet - id пользователей, которых надо получить с сервера
+            foreach (var vkMessage in vkMessages.Messages)
+            {
+                long vkMessageUserId;
+
+                if (vkMessage.UserId.HasValue)
                 {
-                    long vkMessageUserId;
+                    vkMessageUserId = vkMessage.UserId.Value;
 
-                    if (vkMessage.UserId.HasValue)
+                    if ((!usersDict.ContainsKey(vkMessageUserId)) && (!userIdsToGet.Contains(vkMessageUserId)))
+                        userIdsToGet.Add(vkMessageUserId);
+                }
+            }
+
+            try
+            {
+                var vkUsers = vk.Users.Get(userIdsToGet);
+
+                foreach (var vkUser in vkUsers)
+                {
+                    usersDict[vkUser.Id] = vkUser;
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            foreach (var vkMessage in vkMessages.Messages)
+            {
+                long vkMessageUserId = 0;
+
+                if (vkMessage.ReadState.HasValue)
+                    if (vkMessage.ReadState.Value == MessageReadState.Readed)
+                        continue;
+
+                Message msg = new Message();
+
+                if (vkMessage.UserId.HasValue)
+                {
+                    vkMessageUserId = vkMessage.UserId.Value;
+
+                    if (usersDict.ContainsKey(vkMessageUserId))
                     {
-                        vkMessageUserId = vkMessage.UserId.Value;
-
-                        if ((!usersDict.ContainsKey(vkMessageUserId)) && (!userIdsToGet.Contains(vkMessageUserId)))
-                            userIdsToGet.Add(vkMessageUserId);
+                        if ((usersDict[vkMessageUserId].FirstName != null) && (usersDict[vkMessageUserId].LastName != null))
+                            msg.SenderName = usersDict[vkMessageUserId].FirstName + " " + usersDict[vkMessageUserId].LastName;
+                        else if (usersDict[vkMessageUserId].Nickname != null)
+                            msg.SenderName = usersDict[vkMessageUserId].Nickname;
+                        else
+                            msg.SenderName = vkMessage.Title;
                     }
                 }
 
-                try
+                if (string.IsNullOrEmpty(msg.SenderName))
+                    msg.SenderName = vkMessage.Title;
+
+                if (vkMessage.Id.HasValue)
+                    msg.Id = vkMessage.Id.Value;
+
+                msg.MsgText = vkMessage.Body;
+
+                if (vkMessage.ChatId.HasValue)
                 {
-                    var vkUsers = vk.Users.Get(userIdsToGet);
-
-                    foreach(var vkUser in vkUsers)
-                    {
-                        usersDict[vkUser.Id] = vkUser;
-                    }
-                }
-                catch (Exception)
-                {
-                }
-
-                foreach (var vkMessage in vkMessages.Messages)
-                {
-                    long vkMessageUserId = 0;
-
-                    if (vkMessage.ReadState.HasValue)
-                        if (vkMessage.ReadState.Value == MessageReadState.Readed)
-                            continue;
-
-                    Message msg = new Message();
-
-                    if (vkMessage.UserId.HasValue)
-                    {
-                        vkMessageUserId = vkMessage.UserId.Value;
-
-                        if (usersDict.ContainsKey(vkMessageUserId))
-                        {
-                            if ((usersDict[vkMessageUserId].FirstName != null) && (usersDict[vkMessageUserId].LastName != null))
-                                msg.SenderName = usersDict[vkMessageUserId].FirstName + " " + usersDict[vkMessageUserId].LastName;
-                            else if (usersDict[vkMessageUserId].Nickname != null)
-                                msg.SenderName = usersDict[vkMessageUserId].Nickname;
-                            else
-                                msg.SenderName = vkMessage.Title;
-                        }
-                    } 
-
-                    if(string.IsNullOrEmpty(msg.SenderName))
-                        msg.SenderName = vkMessage.Title;
-
-                    if(vkMessage.Id.HasValue)
-                        msg.Id = vkMessage.Id.Value;
-
-                    msg.MsgText = vkMessage.Body;
-
+                    msg.MsgType = MsgTypes.Dialog;
                     if (vkMessage.ChatId.HasValue)
                     {
-                        msg.MsgType = MsgTypes.Dialog;
-                        if (vkMessage.ChatId.HasValue)
-                        {
-                            msg.MsgUrl = "https://vk.com/im?msgid=" + msg.Id.ToString() + "&sel=c" + vkMessage.ChatId.Value;
-                            msg.DomainUrl = "https://vk.com/im?sel=c" + vkMessageUserId.ToString() + vkMessage.ChatId.Value;
-                        }
-                        else
-                        {
-                            msg.MsgUrl = "https://vk.com/im";
-                            msg.DomainUrl = "https://vk.com/im";
-                        }
-                        
+                        msg.MsgUrl = "https://vk.com/im?msgid=" + msg.Id.ToString() + "&sel=c" + vkMessage.ChatId.Value;
+                        msg.DomainUrl = "https://vk.com/im?sel=c" + vkMessageUserId.ToString() + vkMessage.ChatId.Value;
                     }
                     else
                     {
-                        msg.MsgType = MsgTypes.Personal;
-                        msg.MsgUrl = "https://vk.com/im?msgid=" + msg.Id.ToString() + "&sel=" + vkMessageUserId.ToString();
-                        msg.DomainUrl = "https://vk.com/im?sel=" + vkMessageUserId.ToString();
+                        msg.MsgUrl = "https://vk.com/im";
+                        msg.DomainUrl = "https://vk.com/im";
                     }
-                        
 
-                    messageStack.Push(msg);
-                    //break;
                 }
+                else
+                {
+                    msg.MsgType = MsgTypes.Personal;
+                    msg.MsgUrl = "https://vk.com/im?msgid=" + msg.Id.ToString() + "&sel=" + vkMessageUserId.ToString();
+                    msg.DomainUrl = "https://vk.com/im?sel=" + vkMessageUserId.ToString();
+                }
+
+
+                messageStack.Push(msg);
+                //break;
             }
-            /*catch(Exception e)
-            {
-                MessageBox.Show(e.Message);
-                return false;
-            }*/
+
             return true;
         }
 
