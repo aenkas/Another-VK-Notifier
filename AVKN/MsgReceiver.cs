@@ -52,16 +52,16 @@ namespace AVKN
             /*try */{
                 int offset = 0;
                 MessagesGetParams vkMsgParams = new MessagesGetParams();
-                Dictionary<long, VkNet.Model.User> usersDict = new Dictionary<long, VkNet.Model.User>();
+                var usersDict = new Dictionary<long, VkNet.Model.User>();
 
-                vkMsgParams.Count = 200;
+                vkMsgParams.Count = 100;
                 vkMsgParams.Offset = 0;
                 vkMsgParams.TimeOffset = 0;
                 vkMsgParams.Filters = MessagesFilter.All;
 
                 MessagesGetObject vkMessages = vk.Messages.Get(vkMsgParams);//vk.Messages.Get(0, out offset, 100, 0, new TimeSpan(0), 0);
                 
-                foreach (VkNet.Model.Message vkMessage in vkMessages.Messages)
+                foreach (var vkMessage in vkMessages.Messages)
                 {
                     Message msg = new Message();
 
