@@ -6,9 +6,12 @@ using VkNet;
 using VkNet.Categories;
 using VkNet.Utils;
 using VkNet.Model;
+using VkNet.Model.Attachments;
+using VkNet.Model.Auth;
+using VkNet.Model.RequestParams;
 using VkNet.Enums;
-using VkNet.Exception;
 using VkNet.Enums.Filters;
+using VkNet.Exception;
 using System.Windows.Forms;
 
 namespace AVKN
@@ -33,7 +36,7 @@ namespace AVKN
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                //MessageBox.Show(e.Message);
                 return false;
             }
             return (isLogged = true);
@@ -46,23 +49,57 @@ namespace AVKN
 
         public bool RetrieveMessages()
         {
-            try {
+            /*try */{
                 int offset = 0;
-                var messages = vk.Messages.Get(0, out offset, 100, 1, new TimeSpan(0), 0);
-                foreach (VkNet.Model.Message m in messages)
+                MessagesGetParams vkMsgParams = new MessagesGetParams();
+                Dictionary<long, VkNet.Model.User> usersDict = new Dictionary<long, VkNet.Model.User>();
+
+                vkMsgParams.Count = 200;
+                vkMsgParams.Offset = 0;
+                vkMsgParams.TimeOffset = 0;
+                vkMsgParams.Filters = MessagesFilter.All;
+
+                MessagesGetObject vkMessages = vk.Messages.Get(vkMsgParams);//vk.Messages.Get(0, out offset, 100, 0, new TimeSpan(0), 0);
+                
+                foreach (VkNet.Model.Message vkMessage in vkMessages.Messages)
                 {
                     Message msg = new Message();
-                    msg.MsgText = m.Body;
+
+                    if(vkMessage.UserId.HasValue)
+                    {
+                        long vkMessageUserId = vkMessage.UserId.Value;
+
+                        if (!usersDict.ContainsKey(vkMessageUserId))
+                        {
+                            User vkUser = vk.Users.Get(vkMessageUserId);
+
+                            usersDict[vkMessageUserId] = vkUser;
+                        }
+
+                        if((usersDict[vkMessageUserId].FirstName != null) && (usersDict[vkMessageUserId].LastName != null))
+                            msg.SenderName = usersDict[vkMessageUserId].FirstName + " " + usersDict[vkMessageUserId].LastName;
+                        else if(usersDict[vkMessageUserId].Nickname != null)
+                            msg.SenderName = usersDict[vkMessageUserId].Nickname;
+                        else
+                            msg.SenderName = vkMessage.Title;
+                    } else
+                    {
+                        msg.SenderName = vkMessage.Title;
+                    }
+
+                    msg.MsgText = vkMessage.Body;
                     //msgtypes - хз
                     //msg.MsgUrl = m.
+                    
                     messageStack.Push(msg);
+                    //break;
                 }
             }
-            catch(Exception e)
+            /*catch(Exception e)
             {
                 MessageBox.Show(e.Message);
                 return false;
-            }
+            }*/
             return true;
          }
 
