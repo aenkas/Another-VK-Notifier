@@ -53,7 +53,7 @@ namespace AVKN
             /*try */{
                 MessagesGetParams vkMsgParams = new MessagesGetParams();
 
-                vkMsgParams.Count = 10;
+                vkMsgParams.Count = 100;
                 vkMsgParams.Offset = 0;
                 vkMsgParams.TimeOffset = 0;
                 vkMsgParams.Filters = MessagesFilter.All;
@@ -62,6 +62,8 @@ namespace AVKN
                 
                 foreach (var vkMessage in vkMessages.Messages)
                 {
+                    long vkMessageUserId = 0;
+
                     if (vkMessage.ReadState.HasValue)
                         if (vkMessage.ReadState.Value == MessageReadState.Readed)
                             continue;
@@ -70,7 +72,7 @@ namespace AVKN
 
                     if (vkMessage.UserId.HasValue)
                     {
-                        long vkMessageUserId = vkMessage.UserId.Value;
+                        vkMessageUserId = vkMessage.UserId.Value;
 
                         if (!usersDict.ContainsKey(vkMessageUserId))
                         {
@@ -100,13 +102,34 @@ namespace AVKN
                     if(string.IsNullOrEmpty(msg.SenderName))
                         msg.SenderName = vkMessage.Title;
 
+                    if(vkMessage.Id.HasValue)
+                        msg.Id = vkMessage.Id.Value;
+
                     msg.MsgText = vkMessage.Body;
+
                     if (vkMessage.ChatId.HasValue)
+                    {
                         msg.MsgType = MsgTypes.Dialog;
+                        if (vkMessage.ChatId.HasValue)
+                        {
+                            msg.MsgUrl = "https://vk.com/im?msgid=" + msg.Id.ToString() + "&sel=c" + vkMessage.ChatId.Value;
+                            msg.DomainUrl = "https://vk.com/im?sel=c" + vkMessageUserId.ToString() + vkMessage.ChatId.Value;
+                        }
+                        else
+                        {
+                            msg.MsgUrl = "https://vk.com/im";
+                            msg.DomainUrl = "https://vk.com/im";
+                        }
+                        
+                    }
                     else
+                    {
                         msg.MsgType = MsgTypes.Personal;
-                    //msg.MsgUrl = m.
-                    
+                        msg.MsgUrl = "https://vk.com/im?msgid=" + msg.Id.ToString() + "&sel=" + vkMessageUserId.ToString();
+                        msg.DomainUrl = "https://vk.com/im?sel=" + vkMessageUserId.ToString();
+                    }
+                        
+
                     messageStack.Push(msg);
                     //break;
                 }

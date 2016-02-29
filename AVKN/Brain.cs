@@ -114,13 +114,6 @@ namespace AVKN
             {
                 Message message = brainsMessageReceiver.PopFirstMsg();
 
-                if(!lastIds.Contains(message.Id))
-                {
-                    lastIds.Add(message.Id);
-
-                    hasNewMessages = true;
-                }
-
                 if (message == null)
                     break;
 
@@ -132,6 +125,13 @@ namespace AVKN
 
                 if ((message.MsgType == MsgTypes.Group) && (notifyAboutGroups == false))
                     continue;
+
+                if (!lastIds.Contains(message.Id))
+                {
+                    lastIds.Add(message.Id);
+
+                    hasNewMessages = true;
+                }
 
                 notification.AddMessage(message);
             }
