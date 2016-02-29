@@ -14,11 +14,25 @@ namespace AVKN
 
     public class Message
     {
+        long id;
         MsgTypes msgType;
         string senderName;
         string msgText;
         string msgUrl;
         string domainUrl;
+
+        public long Id
+        {
+            get
+            {
+                return id;
+            }
+
+            set
+            {
+                id = value;
+            }
+        }
 
         public MsgTypes MsgType
         {
@@ -95,6 +109,7 @@ namespace AVKN
 
         public Message()
         {
+            Id = 0;
             msgType = MsgTypes.Personal;
             senderName = "";
             msgText = "";

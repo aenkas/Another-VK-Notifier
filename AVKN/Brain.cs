@@ -15,6 +15,7 @@ namespace AVKN
         MsgReceiver brainsMessageReceiver;
         Notifier brainsNotifier;
         bool isInit;
+        List<long> lastIds;
 
         public bool NotifyAboutPersonal
         {
@@ -97,6 +98,7 @@ namespace AVKN
         public bool IncreaseEntropy()
         {
             Notification notification = new Notification();
+            bool hasNewMessages = false;
 
             if (!isInit)
                 return false;
@@ -111,6 +113,13 @@ namespace AVKN
             while (brainsMessageReceiver.GetMessagesCount() > 0)
             {
                 Message message = brainsMessageReceiver.PopFirstMsg();
+
+                if(!lastIds.Contains(message.Id))
+                {
+                    lastIds.Add(message.Id);
+
+                    hasNewMessages = true;
+                }
 
                 if (message == null)
                     break;
@@ -127,8 +136,9 @@ namespace AVKN
                 notification.AddMessage(message);
             }
 
-            if (notification.BuildNotification())
-                brainsNotifier.ShowNotification(notification);
+            if (hasNewMessages == true)
+                if (notification.BuildNotification())
+                    brainsNotifier.ShowNotification(notification);
 
             return true;
         }
@@ -151,6 +161,7 @@ namespace AVKN
             login = "";
             password = "";
             isInit = false;
+            lastIds = new List<long>();
         }
     }
 }

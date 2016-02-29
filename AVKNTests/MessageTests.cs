@@ -15,12 +15,14 @@ namespace AVKNTests
         {
             Message message = new Message();
 
+            Assert.IsNotNull(message.Id);
             Assert.IsNotNull(message.DomainUrl);
             Assert.IsNotNull(message.MsgText);
             Assert.IsNotNull(message.MsgType);
             Assert.IsNotNull(message.MsgUrl);
             Assert.IsNotNull(message.SenderName);
 
+            Assert.AreEqual(0, message.Id);
             Assert.AreEqual("", message.DomainUrl);
             Assert.AreEqual("", message.MsgText);
             Assert.AreEqual(MsgTypes.Personal, message.MsgType);

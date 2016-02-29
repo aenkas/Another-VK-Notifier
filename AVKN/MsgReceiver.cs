@@ -55,7 +55,7 @@ namespace AVKN
                 int offset = 0;
                 MessagesGetParams vkMsgParams = new MessagesGetParams();
 
-                vkMsgParams.Count = 100;
+                vkMsgParams.Count = 10;
                 vkMsgParams.Offset = 0;
                 vkMsgParams.TimeOffset = 0;
                 vkMsgParams.Filters = MessagesFilter.All;
@@ -93,6 +93,10 @@ namespace AVKN
                     }
 
                     msg.MsgText = vkMessage.Body;
+                    if (vkMessage.ChatId.HasValue)
+                        msg.MsgType = MsgTypes.Dialog;
+                    else
+                        msg.MsgType = MsgTypes.Personal;
                     //msgtypes - хз
                     //msg.MsgUrl = m.
                     
@@ -106,7 +110,7 @@ namespace AVKN
                 return false;
             }*/
             return true;
-         }
+        }
 
         public int GetMessagesCount()
         {
