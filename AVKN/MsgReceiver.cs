@@ -21,6 +21,8 @@ namespace AVKN
         private bool isLogged;
         private Stack<Message> messageStack = new Stack<Message>();
         private VkApi vk = new VkApi();
+        Dictionary<long, VkNet.Model.User> usersDict;
+
         public bool LogInVk(string login, string password)
         {
             try
@@ -52,7 +54,6 @@ namespace AVKN
             /*try */{
                 int offset = 0;
                 MessagesGetParams vkMsgParams = new MessagesGetParams();
-                var usersDict = new Dictionary<long, VkNet.Model.User>();
 
                 vkMsgParams.Count = 100;
                 vkMsgParams.Offset = 0;
@@ -63,9 +64,13 @@ namespace AVKN
                 
                 foreach (var vkMessage in vkMessages.Messages)
                 {
+                    if (vkMessage.ReadState.HasValue)
+                        if (vkMessage.ReadState.Value == MessageReadState.Readed)
+                            continue;
+
                     Message msg = new Message();
 
-                    if(vkMessage.UserId.HasValue)
+                    if (vkMessage.UserId.HasValue)
                     {
                         long vkMessageUserId = vkMessage.UserId.Value;
 
@@ -121,7 +126,7 @@ namespace AVKN
 
         public MsgReceiver()
         {
-
+            usersDict = new Dictionary<long, VkNet.Model.User>();
         }
     }
 }
