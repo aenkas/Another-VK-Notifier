@@ -57,7 +57,6 @@ namespace AVKN
 
             ni.Text = defaultText;
             ni.Icon = SystemIcons.Application;
-            ni.Click += ProcessNILMBClicks;
             ni.DoubleClick += ProcessNILMBClicks;
             ni.BalloonTipClicked += ProcessNILMBClicks;
             ni.Visible = true;
@@ -98,7 +97,6 @@ namespace AVKN
 
         private void ProcessNILMBClicks(object sender, EventArgs e)
         {
-            ni.Click -= ProcessNILMBClicks;
             ni.DoubleClick -= ProcessNILMBClicks;
             ni.BalloonTipClicked -= ProcessNILMBClicks;
 
@@ -114,7 +112,6 @@ namespace AVKN
             }
             finally
             {
-                ni.Click += ProcessNILMBClicks;
                 ni.DoubleClick += ProcessNILMBClicks;
                 ni.BalloonTipClicked += ProcessNILMBClicks;
             }
