@@ -36,9 +36,8 @@ namespace AVKN
                 auth.Settings = scope;
                 vk.Authorize(auth);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                //MessageBox.Show(e.Message);
                 return false;
             }
             return (isLogged = true);
@@ -52,7 +51,6 @@ namespace AVKN
         public bool RetrieveMessages()
         {
             /*try */{
-                int offset = 0;
                 MessagesGetParams vkMsgParams = new MessagesGetParams();
 
                 vkMsgParams.Count = 10;
@@ -76,28 +74,37 @@ namespace AVKN
 
                         if (!usersDict.ContainsKey(vkMessageUserId))
                         {
-                            User vkUser = vk.Users.Get(vkMessageUserId);
+                            try
+                            {
+                                User vkUser = vk.Users.Get(vkMessageUserId);
 
-                            usersDict[vkMessageUserId] = vkUser;
+                                usersDict[vkMessageUserId] = vkUser;
+                            }
+                            catch (Exception)
+                            {
+
+                            }
                         }
 
-                        if((usersDict[vkMessageUserId].FirstName != null) && (usersDict[vkMessageUserId].LastName != null))
-                            msg.SenderName = usersDict[vkMessageUserId].FirstName + " " + usersDict[vkMessageUserId].LastName;
-                        else if(usersDict[vkMessageUserId].Nickname != null)
-                            msg.SenderName = usersDict[vkMessageUserId].Nickname;
-                        else
-                            msg.SenderName = vkMessage.Title;
-                    } else
-                    {
+                        if (usersDict.ContainsKey(vkMessageUserId))
+                        {
+                            if ((usersDict[vkMessageUserId].FirstName != null) && (usersDict[vkMessageUserId].LastName != null))
+                                msg.SenderName = usersDict[vkMessageUserId].FirstName + " " + usersDict[vkMessageUserId].LastName;
+                            else if (usersDict[vkMessageUserId].Nickname != null)
+                                msg.SenderName = usersDict[vkMessageUserId].Nickname;
+                            else
+                                msg.SenderName = vkMessage.Title;
+                        }
+                    } 
+
+                    if(string.IsNullOrEmpty(msg.SenderName))
                         msg.SenderName = vkMessage.Title;
-                    }
 
                     msg.MsgText = vkMessage.Body;
                     if (vkMessage.ChatId.HasValue)
                         msg.MsgType = MsgTypes.Dialog;
                     else
                         msg.MsgType = MsgTypes.Personal;
-                    //msgtypes - хз
                     //msg.MsgUrl = m.
                     
                     messageStack.Push(msg);
@@ -119,8 +126,10 @@ namespace AVKN
 
         public Message PopFirstMsg()
         {
-            // if messageStack.Count == 0, then it will throw it's own exception when popping, so, do not handle this case?
-            return messageStack.Pop();
+            if (messageStack.Count == 0)
+                return new Message();
+            else
+                return messageStack.Pop();
         }
 
         public void ClearMsgStack()
