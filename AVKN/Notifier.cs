@@ -24,7 +24,14 @@ namespace AVKN
             ni.Text = havenewText;
             launchUrl = n.NotificationUrl;
 
-            ni.ShowBalloonTip(9000, n.NotificationHeader, n.NotificationText, ToolTipIcon.Info);
+            if (string.IsNullOrEmpty(n.NotificationText)) {
+                if (string.IsNullOrEmpty(n.NotificationHeader))
+                    ni.ShowBalloonTip(9000, "", defaultText, ToolTipIcon.Info);
+                else
+                    ni.ShowBalloonTip(9000, "", n.NotificationHeader, ToolTipIcon.Info);
+            }
+            else
+                ni.ShowBalloonTip(9000, n.NotificationHeader, n.NotificationText, ToolTipIcon.Info);
 
             return true;
         }
