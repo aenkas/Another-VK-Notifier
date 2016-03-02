@@ -163,7 +163,7 @@ namespace AVKN
                     if (vkMessage.ChatId.HasValue)
                     {
                         msg.MsgUrl = "https://vk.com/im?msgid=" + msg.Id.ToString() + "&sel=c" + vkMessage.ChatId.Value;
-                        msg.DomainUrl = "https://vk.com/im?sel=c" + vkMessageUserId.ToString() + vkMessage.ChatId.Value;
+                        msg.DomainUrl = "https://vk.com/im?sel=c" + vkMessage.ChatId.Value;
                     }
                     else
                     {
