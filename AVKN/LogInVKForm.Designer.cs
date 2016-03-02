@@ -95,6 +95,7 @@
             this.MaximizeBox = false;
             this.Name = "LogInVKForm";
             this.Text = "Авторизация";
+            this.Load += new System.EventHandler(this.LogInVKForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

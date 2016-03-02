@@ -28,13 +28,27 @@ namespace AVKN
             try
             {
                 var auth = new ApiAuthParams();
+                TwoFactorAuthForm authForm = new TwoFactorAuthForm();
 
                 Settings scope = Settings.All;
                 auth.Login = login;
                 auth.Password = password;
                 auth.ApplicationId = 5322484;
                 auth.Settings = scope;
-                vk.Authorize(auth);
+                
+                // Первое, что пришло в голову. Есть примеры лучше? Правим код!
+                try
+                {
+                    vk.Authorize(auth);
+                }
+                catch(Exception)
+                {
+                    auth.TwoFactorAuthorization = authForm.ShowDialogAndReturnKey;
+
+                    
+                    vk.Authorize(auth);
+                }
+                
             }
             catch (Exception)
             {

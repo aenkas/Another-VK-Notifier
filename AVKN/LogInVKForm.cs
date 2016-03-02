@@ -27,5 +27,10 @@ namespace AVKN
 
             this.Close();
         }
+
+        private void LogInVKForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
