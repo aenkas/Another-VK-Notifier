@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace AVKN
 {
-    public class Notifier
+    public class Notifier : IDisposable 
     {
         NotifyIcon ni;
         const string authErrorText = "Пользователь не авторизован";
@@ -15,6 +15,7 @@ namespace AVKN
         const string havenewText = "Есть новые уведомления";
         string launchUrl;
         Func<bool> launchCallback;
+        bool disposed = false;
 
         public bool ShowNotification(Notification n)
         {
@@ -71,14 +72,6 @@ namespace AVKN
             return true;
         }
 
-        public bool DestroyNotifier()
-        {
-            ni.Dispose();
-            ni = null;
-
-            return true;
-        }
-
         public bool SetContextMenu(ContextMenu niContextMenu)
         {
             if (ni == null)
@@ -122,6 +115,34 @@ namespace AVKN
                 ni.DoubleClick += ProcessNILMBClicks;
                 ni.BalloonTipClicked += ProcessNILMBClicks;
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(this.disposed == false)
+            {
+                if(disposing == true)
+                {
+                    if(ni != null)
+                    {
+                        ni.Dispose();
+                        ni = null;
+                    }
+                }
+
+                disposed = true;
+            }
+        }
+
+        ~Notifier()
+        {
+            Dispose(false);
         }
     }
 }

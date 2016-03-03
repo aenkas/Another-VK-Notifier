@@ -13,9 +13,10 @@ namespace AVKN
         [STAThread]
         static void Main()
         {
-            AppLogic appLogic = new AppLogic();
-
-            appLogic.RunApp();
+            using (AppLogic appLogic = new AppLogic())
+            {
+                appLogic.RunApp();
+            }
             //Application.EnableVisualStyles();
             //Application.SetCompatibleTextRenderingDefault(false);
             //Application.Run(new Form1());

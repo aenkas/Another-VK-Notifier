@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace AVKN
 {
-    class AppLogic
+    class AppLogic : IDisposable 
     {
         MsgReceiver receiver;
         Notifier notifier;
@@ -15,6 +15,7 @@ namespace AVKN
         ContextMenu contextMenu;
         System.Timers.Timer appTimer;
         System.Object lockObject;
+        bool disposed = false;
 
         public void RunApp()
         {
@@ -74,7 +75,6 @@ namespace AVKN
             lock (lockObject)
             {
                 brain.SaveSettings();
-                notifier.DestroyNotifier();
             }
         }
 
@@ -248,6 +248,33 @@ namespace AVKN
         public AppLogic()
         {
             lockObject = new System.Object();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(disposed == false)
+            {
+                if(disposing == true)
+                {
+                    notifier.Dispose();
+                    appTimer.Dispose();
+                    contextMenu.Dispose();
+                }
+
+                disposed = true;
+            }
+        }
+
+        ~AppLogic()
+        {
+            Dispose(false);
         }
     }
 }
