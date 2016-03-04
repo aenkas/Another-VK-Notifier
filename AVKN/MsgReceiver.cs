@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using VkNet;
 using VkNet.Categories;
 using VkNet.Utils;
@@ -35,8 +36,10 @@ namespace AVKN
     {
         private bool isLogged;
         private Stack<Message> messageStack = new Stack<Message>();
+        private Stack<Message> wallPostStack = new Stack<Message>();
         private VkApi vk = new VkApi();
         Dictionary<long, VkNet.Model.User> usersDict;
+
 
         public bool LogInVk(string login, string password)
         {
@@ -50,20 +53,20 @@ namespace AVKN
                 auth.Password = password;
                 auth.ApplicationId = 5322484;
                 auth.Settings = scope;
-                
+
                 // Первое, что пришло в голову. Есть примеры лучше? Правим код!
                 try
                 {
                     vk.Authorize(auth);
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     auth.TwoFactorAuthorization = authForm.ShowDialogAndReturnKey;
 
-                    
+
                     vk.Authorize(auth);
                 }
-                
+
             }
             catch (Exception)
             {
@@ -198,7 +201,38 @@ namespace AVKN
                 messageStack.Push(msg);
                 //break;
             }
-
+            Thread.Sleep(1000);
+            var vkGroups = vk.Groups.Get(vk.UserId.Value);
+            int count = 0;
+            foreach (var vkGroup in vkGroups)
+            {
+                WallGetParams vkWallParams = new WallGetParams();
+                vkWallParams.Count = 50;
+                vkWallParams.Offset = 0;
+                vkWallParams.OwnerId = -vkGroup.Id; // needs to be negative
+                WallGetObject vkWalls = null;
+                try // useless, but it would throw an exception if the user is not a member (was deleted) or the group id is wrong
+                {
+                    vkWalls = vk.Wall.Get(vkWallParams);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                var posts = vkWalls.WallPosts;
+                foreach (var post in posts)
+                {
+                    Message msg = new Message();
+                    msg.MsgText = post.Text;
+                    wallPostStack.Push(msg);
+                }
+                count = (count + 1) % 3;
+                if (count == 0) Thread.Sleep(1000);
+            }
+            /*foreach (var m in wallPostStack)
+            {
+                Console.WriteLine(m.MsgText);
+            }*/
             return true;
         }
 
