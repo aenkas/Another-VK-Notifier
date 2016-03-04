@@ -141,22 +141,27 @@ namespace AVKN
 
             form.ShowDialog();
 
-            if (receiver.LogInVk(brain.Login, brain.Password))
+            if (form.DialogResult == DialogResult.OK)
             {
-                brain.BrainDrain();
-                brain.SaveSettings();
+                if (receiver.LogInVk(brain.Login, brain.Password))
+                {
+                    brain.BrainDrain();
+                    brain.SaveSettings();
 
-                notifier.ShowDefault();
+                    notifier.ShowDefault();
+                }
+                else
+                {
+                    MessageBox.Show("Невозможно авторизоваться в ВКонтакте");
+
+                    notifier.ShowAuthError();
+
+                    brain.Login = "";
+                    brain.Password = "";
+                }
             }
-            else
-            {
-                MessageBox.Show("Невозможно авторизоваться в ВКонтакте");
 
-                notifier.ShowAuthError();
-
-                brain.Login = "";
-                brain.Password = "";
-            }
+            form.Dispose();
 
             if (!notifier.SetContextMenu(contextMenu))
                 throw new Exception();

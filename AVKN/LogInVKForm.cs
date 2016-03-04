@@ -25,7 +25,7 @@ namespace AVKN
             brainRef.Login = loginTextBox.Text;
             brainRef.Password = passwordTextBox.Text;
 
-            this.Close();
+            this.DialogResult = DialogResult.OK;
         }
 
         private void LogInVKForm_Load(object sender, EventArgs e)
