@@ -4,29 +4,122 @@ using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AVKN;
+using Moq;
 
 namespace AVKNTests
 {
-    public interface ITester {
-        bool IsTestCorrect();
-    }
-
-    public interface INotifierTester : INotifier, ITester 
-    {
-    }
-
-    public interface IMsgReceiverTester : IMsgReceiver, ITester
-    {
-    }
-
     [TestClass]
     public class BrainTests
     {
-        bool TypicalBrainTest(Brain brain, INotifierTester notifierTester, IMsgReceiverTester msgReceiverTester)
+        [TestMethod]
+        public void BrainDrain_Clears_Message_Ids_And_No_Doubling_Test()
         {
-            brain.InitBrain(msgReceiverTester, notifierTester);
+            Brain brain = new Brain();
+            var mr = new Mock<IMsgReceiver>();
+            var notifier = new Mock<INotifier>();
+            Message msg1 = new Message(), msg2 = new Message(), msg3 = new Message();
+            int messages_count = 0;
+            bool showNotificationCalled = false;
+            string desiredNotificationText = "";
 
-            return notifierTester.IsTestCorrect() && msgReceiverTester.IsTestCorrect();
+            Assert.IsTrue(brain.InitBrain(mr.Object, notifier.Object));
+
+            msg1.Id = 1;
+            msg2.Id = 2;
+            msg3.Id = 3;
+
+            mr.Setup(foo => foo.IsLogged()).Returns(true);
+            mr.Setup(foo => foo.GetMessagesCount()).Returns(() => { return messages_count; });
+            mr.Setup(foo => foo.PopFirstMsg()).Returns(() => 
+                {
+                    if (messages_count == 3)
+                        return msg3;
+                    else if (messages_count == 2)
+                        return msg2;
+                    else
+                        return msg1;
+                } ).Callback(() => { messages_count--; });
+            notifier.Setup(foo => foo.ShowNotification(It.IsAny<Notification>())).Returns((Notification n) =>
+                {
+                    Assert.AreEqual(desiredNotificationText, n.NotificationText);
+
+                    showNotificationCalled = true;
+
+                    return true;
+                });
+
+            // Получаем 2 новых сообщения
+            showNotificationCalled = false;
+            messages_count = 2;
+            desiredNotificationText = "У вас 2 непрочитанных сообщений";
+            Assert.AreEqual(2, mr.Object.GetMessagesCount());
+            Assert.IsTrue(brain.IncreaseEntropy(), "brain.IncreaseEntropy(), Получаем 2 новых сообщения");
+            Assert.IsTrue(showNotificationCalled, "showNotificationCalled, Получаем 2 новых сообщения");
+            Assert.AreEqual(0, mr.Object.GetMessagesCount());
+
+            // Те же 2 новых сообщения
+            showNotificationCalled = false;
+            messages_count = 2;
+            Assert.AreEqual(2, mr.Object.GetMessagesCount());
+            Assert.IsTrue(brain.IncreaseEntropy(), "brain.IncreaseEntropy(), Те же 2 новых сообщения");
+            Assert.IsFalse(showNotificationCalled, "showNotificationCalled, Те же 2 новых сообщения");
+            Assert.AreEqual(0, mr.Object.GetMessagesCount());
+
+            // Те же 2 + 1 новое сообщение
+            showNotificationCalled = false;
+            messages_count = 3;
+            desiredNotificationText = "У вас 3 непрочитанных сообщений";
+            Assert.AreEqual(3, mr.Object.GetMessagesCount());
+            Assert.IsTrue(brain.IncreaseEntropy(), "brain.IncreaseEntropy(), Те же 2 + 1 новое сообщение");
+            Assert.IsTrue(showNotificationCalled, "showNotificationCalled, Те же 2 + 1 новое сообщение");
+            Assert.AreEqual(0, mr.Object.GetMessagesCount());
+
+            // Те же 3 новых сообщения
+            showNotificationCalled = false;
+            messages_count = 3;
+            Assert.AreEqual(3, mr.Object.GetMessagesCount());
+            Assert.IsTrue(brain.IncreaseEntropy(), "brain.IncreaseEntropy(), Те же 3 новых сообщения");
+            Assert.IsFalse(showNotificationCalled, "showNotificationCalled, Те же 3 новых сообщения");
+            Assert.AreEqual(0, mr.Object.GetMessagesCount());
+
+            // Те же 3 новых сообщения после вызова BrainDrain()
+            showNotificationCalled = false;
+            messages_count = 3;
+            Assert.AreEqual(3, mr.Object.GetMessagesCount());
+            brain.BrainDrain();
+            Assert.IsTrue(brain.IncreaseEntropy(), "brain.IncreaseEntropy(), Те же 3 новых сообщения после вызова BrainDrain()");
+            Assert.IsTrue(showNotificationCalled, "showNotificationCalled, Те же 3 новых сообщения после вызова BrainDrain()");
+            Assert.AreEqual(0, mr.Object.GetMessagesCount());
+        }
+
+        [TestMethod]
+        public void InitBrain_Returns_True_If_Logged_And_False_If_Not()
+        {
+            Brain brain = new Brain();
+            var mr = new Mock<IMsgReceiver>();
+            var notifier = new Mock<Notifier>();
+
+            Assert.IsTrue(brain.InitBrain(mr.Object, notifier.Object));
+
+            mr.Setup(foo => foo.GetMessagesCount()).Returns(0);
+
+            // Не залогинен
+            mr.Setup(foo => foo.IsLogged()).Returns(false);
+            
+            Assert.IsFalse(brain.IncreaseEntropy());
+
+            // Залогинен
+            mr.Setup(foo => foo.IsLogged()).Returns(true);
+            Assert.IsTrue(brain.IncreaseEntropy());
+        }
+
+        [TestMethod]
+        public void Unimplemented_Methods_Returns_False()
+        {
+            Brain brain = new Brain();
+
+            Assert.IsFalse(brain.LoadSettings());
+            Assert.IsFalse(brain.SaveSettings());
         }
 
         [TestMethod]
@@ -41,13 +134,13 @@ namespace AVKNTests
         public void InitBrain_Arguments_Testing()
         {
             Brain brain = new Brain();
-            MsgReceiver mr = new MsgReceiver();
-            Notifier notifier = new Notifier();
+            var mr = new Mock<IMsgReceiver>();
+            var notifier = new Mock<Notifier>();
 
             Assert.IsFalse(brain.InitBrain(null, null));
-            Assert.IsFalse(brain.InitBrain(mr, null));
-            Assert.IsFalse(brain.InitBrain(null, notifier));
-            Assert.IsTrue(brain.InitBrain(mr, notifier));
+            Assert.IsFalse(brain.InitBrain(mr.Object, null));
+            Assert.IsFalse(brain.InitBrain(null, notifier.Object));
+            Assert.IsTrue(brain.InitBrain(mr.Object, notifier.Object));
         }
 
         [TestMethod]
