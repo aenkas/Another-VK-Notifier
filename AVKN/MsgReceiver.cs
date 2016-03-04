@@ -211,7 +211,7 @@ namespace AVKN
                 vkWallParams.Offset = 0;
                 vkWallParams.OwnerId = -vkGroup.Id; // needs to be negative
                 WallGetObject vkWalls = null;
-                try // useless, but it would throw an exception if the user is not a member (was deleted) or the group id is wrong
+                try // useless, but it would throw an exception if the user is not a member (was deleted) or the group id is wrong.
                 {
                     vkWalls = vk.Wall.Get(vkWallParams);
                 }
