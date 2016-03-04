@@ -202,7 +202,7 @@ namespace AVKN
                 messageStack.Push(msg);
                 //break;
             }
-            var vkGroups = vk.Groups.Get(vk.UserId.Value);
+            /*var vkGroups = vk.Groups.Get(vk.UserId.Value);
             if (viewedGroups.Count == vkGroups.Count) viewedGroups.Clear();
             int count = 0;
             foreach (var vkGroup in vkGroups)
@@ -232,7 +232,7 @@ namespace AVKN
                     msg.MsgText = post.Text;
                     msg.MsgUrl = "https://vk.com/" + vkGroup.Name + "?w=wall" + vkGroup.Id + "_" + post.Id + "%2Fall";
                     msg.DomainUrl = "https://vk.com/" + vkGroup.Name;
-                    //msg.Id = vkGroup.Id.ToString() + "_" + post.Id.ToString(); msg.id is not string
+                    msg.Id = -viewedGroups.Count;
                     if (post.FromId.Value > 0)
                     {
                         var user = vk.Users.Get(post.FromId.Value);
@@ -242,14 +242,13 @@ namespace AVKN
                     {
                         msg.SenderName = vkGroup.Name;
                     }
-                    //msg.MsgUrl = ;
                     wallPostStack.Push(msg);
                 }
             }
             foreach (var m in wallPostStack)
             {
                 Console.WriteLine(m.MsgText);
-            }
+            }*/
             return true;
         }
 
