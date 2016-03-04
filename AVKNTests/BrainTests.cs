@@ -12,6 +12,109 @@ namespace AVKNTests
     public class BrainTests
     {
         [TestMethod]
+        public void IncreaseEntropy_Correctly_Drops_Unwanted_Messages()
+        {
+            Brain brain = new Brain();
+            var mr = new Mock<IMsgReceiver>();
+            var notifier = new Mock<INotifier>();
+            Message [] msgs = new Message[14];
+            int messages_count = 0;
+            bool showNotificationCalled = false;
+            string desiredNotificationText = "";
+
+            mr.Setup(foo => foo.IsLogged()).Returns(true);
+            mr.Setup(foo => foo.GetMessagesCount()).Returns(() => { return messages_count; });
+            mr.Setup(foo => foo.PopFirstMsg()).Returns(() =>
+            {
+                return msgs[messages_count-1];
+            }).Callback(() => { messages_count--; });
+            notifier.Setup(foo => foo.ShowNotification(It.IsAny<Notification>())).Returns((Notification n) =>
+            {
+                Assert.AreEqual(desiredNotificationText, n.NotificationText);
+
+                showNotificationCalled = true;
+
+                return true;
+            });
+
+            for (int i = 0; i < 2; i++)
+            {
+                msgs[i] = new Message();
+
+                msgs[i].MsgType = MsgTypes.Personal;
+            }
+
+            for (int i = 2; i < 6; i++)
+            {
+                msgs[i] = new Message();
+
+                msgs[i].MsgType = MsgTypes.Dialog;
+            }
+
+            for (int i = 6; i < 14; i++)
+            {
+                msgs[i] = new Message();
+
+                msgs[i].MsgType = MsgTypes.Group;
+            }
+
+            Assert.IsTrue(brain.InitBrain(mr.Object, notifier.Object));
+
+            for (int i = 0; i < 8; i++)
+            {
+                bool notifyAboutPersonal = (i & 1) > 0;
+                bool notifyAboutDialogs = (i & 2) > 0;
+                bool notifyAboutGroups = (i & 4) > 0;
+
+                brain.NotifyAboutPersonal = notifyAboutPersonal;
+                brain.NotifyAboutDialogs = notifyAboutDialogs;
+                brain.NotifyAboutGroups = notifyAboutGroups;
+
+                showNotificationCalled = false;
+                messages_count = 14;
+                desiredNotificationText = "У вас " + i * 2 + " непрочитанных сообщений";
+                Assert.AreEqual(14, mr.Object.GetMessagesCount());
+                brain.BrainDrain();
+                Assert.IsTrue(brain.IncreaseEntropy(), "brain.IncreaseEntropy(), Получаем " + i * 2 + " новых сообщения");
+                Assert.AreEqual(i != 0, showNotificationCalled, "showNotificationCalled, Получаем " + i * 2 + " новых сообщения");
+                Assert.AreEqual(0, mr.Object.GetMessagesCount());
+            }
+        }
+
+        [TestMethod]
+        public void IncreaseEntropy_Breaks_On_Null_Messages()
+        {
+            Brain brain = new Brain();
+            var mr = new Mock<IMsgReceiver>();
+            var notifier = new Mock<INotifier>();
+            int messages_count = 0;
+            bool showNotificationCalled = false;
+
+            Assert.IsTrue(brain.InitBrain(mr.Object, notifier.Object));
+
+            mr.Setup(foo => foo.IsLogged()).Returns(true);
+            mr.Setup(foo => foo.GetMessagesCount()).Returns(() => { return messages_count; });
+            mr.Setup(foo => foo.PopFirstMsg()).Returns(() =>
+            {
+                return null;
+            }).Callback(() => { messages_count--; });
+            notifier.Setup(foo => foo.ShowNotification(It.IsAny<Notification>())).Returns((Notification n) =>
+            {
+                showNotificationCalled = true;
+
+                return true;
+            });
+
+            showNotificationCalled = false;
+            messages_count = 3;
+            Assert.AreEqual(3, mr.Object.GetMessagesCount());
+            brain.BrainDrain();
+            Assert.IsTrue(brain.IncreaseEntropy(), "brain.IncreaseEntropy(), 3 null cообщения");
+            Assert.IsFalse(showNotificationCalled, "showNotificationCalled, 3 null cообщения");
+            Assert.AreEqual(2, mr.Object.GetMessagesCount());
+        }
+
+        [TestMethod]
         public void BrainDrain_Clears_Message_Ids_And_No_Doubling_Test()
         {
             Brain brain = new Brain();
