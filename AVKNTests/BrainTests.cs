@@ -7,9 +7,28 @@ using AVKN;
 
 namespace AVKNTests
 {
+    public interface ITester {
+        bool IsTestCorrect();
+    }
+
+    public interface INotifierTester : INotifier, ITester 
+    {
+    }
+
+    public interface IMsgReceiverTester : IMsgReceiver, ITester
+    {
+    }
+
     [TestClass]
     public class BrainTests
     {
+        bool TypicalBrainTest(Brain brain, INotifierTester notifierTester, IMsgReceiverTester msgReceiverTester)
+        {
+            brain.InitBrain(msgReceiverTester, notifierTester);
+
+            return notifierTester.IsTestCorrect() && msgReceiverTester.IsTestCorrect();
+        }
+
         [TestMethod]
         public void IncreaseEntropy_Doesnt_Work_Without_Initialization()
         {
