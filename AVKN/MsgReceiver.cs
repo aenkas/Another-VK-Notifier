@@ -39,6 +39,7 @@ namespace AVKN
         private Stack<Message> wallPostStack = new Stack<Message>();
         private VkApi vk = new VkApi();
         Dictionary<long, VkNet.Model.User> usersDict;
+        private HashSet<long> viewedGroups = new HashSet<long>();
 
 
         public bool LogInVk(string login, string password)
@@ -201,12 +202,16 @@ namespace AVKN
                 messageStack.Push(msg);
                 //break;
             }
-            Thread.Sleep(1000);
             var vkGroups = vk.Groups.Get(vk.UserId.Value);
+            if (viewedGroups.Count == vkGroups.Count) viewedGroups.Clear();
             int count = 0;
             foreach (var vkGroup in vkGroups)
             {
+                if (count == 3) break;
+                if (viewedGroups.Contains(vkGroup.Id)) continue;
+                viewedGroups.Add(vkGroup.Id);
                 WallGetParams vkWallParams = new WallGetParams();
+                count++;
                 vkWallParams.Count = 50;
                 vkWallParams.Offset = 0;
                 vkWallParams.OwnerId = -vkGroup.Id; // needs to be negative
@@ -223,16 +228,28 @@ namespace AVKN
                 foreach (var post in posts)
                 {
                     Message msg = new Message();
+                    msg.MsgType = MsgTypes.Group;
                     msg.MsgText = post.Text;
+                    msg.MsgUrl = "https://vk.com/" + vkGroup.Name + "?w=wall" + vkGroup.Id + "_" + post.Id + "%2Fall";
+                    msg.DomainUrl = "https://vk.com/" + vkGroup.Name;
+                    //msg.Id = vkGroup.Id.ToString() + "_" + post.Id.ToString(); msg.id is not string
+                    if (post.FromId.Value > 0)
+                    {
+                        var user = vk.Users.Get(post.FromId.Value);
+                        msg.SenderName = user.FirstName + " " + user.LastName;
+                    }
+                    else
+                    {
+                        msg.SenderName = vkGroup.Name;
+                    }
+                    //msg.MsgUrl = ;
                     wallPostStack.Push(msg);
                 }
-                count = (count + 1) % 3;
-                if (count == 0) Thread.Sleep(1000);
             }
-            /*foreach (var m in wallPostStack)
+            foreach (var m in wallPostStack)
             {
                 Console.WriteLine(m.MsgText);
-            }*/
+            }
             return true;
         }
 
