@@ -12,8 +12,8 @@ namespace AVKN
         bool notifyAboutGroups;
         string login;
         string password;
-        MsgReceiver brainsMessageReceiver;
-        Notifier brainsNotifier;
+        IMsgReceiver brainsMessageReceiver;
+        INotifier brainsNotifier;
         bool isInit;
         List<long> lastIds;
 
@@ -83,7 +83,7 @@ namespace AVKN
             }
         }
 
-        public bool InitBrain(MsgReceiver mr, Notifier notifier)
+        public bool InitBrain(IMsgReceiver mr, INotifier notifier)
         {
             if(mr == null || notifier == null)
                 return false;

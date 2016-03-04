@@ -7,7 +7,22 @@ using System.Windows.Forms;
 
 namespace AVKN
 {
-    public class Notifier : IDisposable 
+    public interface INotifier : IDisposable
+    {
+        bool ShowNotification(Notification n);
+
+        bool ShowAuthError();
+
+        bool ShowDefault();
+
+        bool InitNotifier();
+
+        bool SetContextMenu(ContextMenu niContextMenu);
+
+        bool SetLaunchCallback(Func<bool> callback);
+    }
+
+    public class Notifier : INotifier
     {
         NotifyIcon ni;
         const string authErrorText = "Пользователь не авторизован";

@@ -16,7 +16,22 @@ using System.Windows.Forms;
 
 namespace AVKN
 {
-    public class MsgReceiver
+    public interface IMsgReceiver
+    {
+        bool LogInVk(string login, string password);
+
+        bool IsLogged();
+
+        bool RetrieveMessages();
+
+        int GetMessagesCount();
+
+        Message PopFirstMsg();
+
+        void ClearMsgStack();
+    }
+
+    public class MsgReceiver : IMsgReceiver
     {
         private bool isLogged;
         private Stack<Message> messageStack = new Stack<Message>();
