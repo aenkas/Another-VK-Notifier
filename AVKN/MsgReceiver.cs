@@ -38,15 +38,17 @@ namespace AVKN
         private Stack<Message> wallPostStack = new Stack<Message>();
         private VkApi vk = new VkApi();
         Dictionary<long, VkNet.Model.User> usersDict;
-        private HashSet<long> viewedGroups = new HashSet<long>();
-
+        //private HashSet<long> viewedGroups = new HashSet<long>();
+        int receivedPostsCounter = -1;
+        System.Collections.ObjectModel.ReadOnlyCollection<Group> vkGroups;
+        int vkGroupsCount = 0;
+        int currentVkGroup = 0;
 
         public bool LogInVk(string login, string password)
         {
             try
             {
                 var auth = new ApiAuthParams();
-                TwoFactorAuthForm authForm = new TwoFactorAuthForm();
 
                 Settings scope = Settings.All;
                 auth.Login = login;
@@ -61,10 +63,12 @@ namespace AVKN
                 }
                 catch (Exception)
                 {
-                    auth.TwoFactorAuthorization = authForm.ShowDialogAndReturnKey;
+                    using (TwoFactorAuthForm authForm = new TwoFactorAuthForm())
+                    {
+                        auth.TwoFactorAuthorization = authForm.ShowDialogAndReturnKey;
 
-
-                    vk.Authorize(auth);
+                        vk.Authorize(auth);
+                    }
                 }
 
             }
@@ -162,12 +166,10 @@ namespace AVKN
                             msg.SenderName = usersDict[vkMessageUserId].FirstName + " " + usersDict[vkMessageUserId].LastName;
                         else if (usersDict[vkMessageUserId].Nickname != null)
                             msg.SenderName = usersDict[vkMessageUserId].Nickname;
-                        else
-                            msg.SenderName = vkMessage.Title;
                     }
                 }
 
-                if (string.IsNullOrEmpty(msg.SenderName))
+                if (string.IsNullOrEmpty(msg.SenderName) && !string.IsNullOrEmpty(vkMessage.Title))
                     msg.SenderName = vkMessage.Title;
 
                 if (vkMessage.Id.HasValue)
@@ -201,16 +203,32 @@ namespace AVKN
                 messageStack.Push(msg);
                 //break;
             }
-            /*var vkGroups = vk.Groups.Get(vk.UserId.Value);
-            if (viewedGroups.Count == vkGroups.Count) viewedGroups.Clear();
-            int count = 0;
-            foreach (var vkGroup in vkGroups)
+
+            //Group vkGroups = vk.Groups.Get(vk.UserId.Value);
+            //if (viewedGroups.Count == vkGroups.Count) viewedGroups.Clear();
+            //int count = 0;
+            //foreach (var vkGroup in vkGroups)
+            for (int i = 0; i < 3; i++)
             {
-                if (count == 3) break;
-                if (viewedGroups.Contains(vkGroup.Id)) continue;
-                viewedGroups.Add(vkGroup.Id);
+                if (currentVkGroup == vkGroupsCount)
+                {
+                    vkGroups = vk.Groups.Get(vk.UserId.Value);
+
+                    vkGroupsCount = vkGroups.Count;
+                    currentVkGroup = 0;
+
+                    continue;
+                }
+
+                Group vkGroup = vkGroups[currentVkGroup];
+
+                currentVkGroup++;
+
+                //if (count == 3) break;
+                //if (viewedGroups.Contains(vkGroup.Id)) continue;
+                //viewedGroups.Add(vkGroup.Id);
                 WallGetParams vkWallParams = new WallGetParams();
-                count++;
+                //count++;
                 vkWallParams.Count = 50;
                 vkWallParams.Offset = 0;
                 vkWallParams.OwnerId = -vkGroup.Id; // needs to be negative
@@ -223,31 +241,50 @@ namespace AVKN
                 {
                     continue;
                 }
+
                 var posts = vkWalls.WallPosts;
                 foreach (var post in posts)
                 {
                     Message msg = new Message();
+
                     msg.MsgType = MsgTypes.Group;
                     msg.MsgText = post.Text;
                     msg.MsgUrl = "https://vk.com/" + vkGroup.Name + "?w=wall" + vkGroup.Id + "_" + post.Id + "%2Fall";
                     msg.DomainUrl = "https://vk.com/" + vkGroup.Name;
-                    msg.Id = -viewedGroups.Count;
-                    if (post.FromId.Value > 0)
+                    msg.Id = -receivedPostsCounter;
+                    receivedPostsCounter--;
+
+                    if (post.FromId.HasValue)
                     {
-                        var user = vk.Users.Get(post.FromId.Value);
-                        msg.SenderName = user.FirstName + " " + user.LastName;
+                        if (post.FromId.Value > 0)
+                        {
+                            long vkMessageUserId = post.FromId.Value;
+                            /*var user = vk.Users.Get(vkMessageUserId);
+
+                            msg.SenderName = user.FirstName + " " + user.LastName;*/
+
+                            if (usersDict.ContainsKey(vkMessageUserId))
+                            {
+                                if ((usersDict[vkMessageUserId].FirstName != null) && (usersDict[vkMessageUserId].LastName != null))
+                                    msg.SenderName = usersDict[vkMessageUserId].FirstName + " " + usersDict[vkMessageUserId].LastName;
+                                else if (usersDict[vkMessageUserId].Nickname != null)
+                                    msg.SenderName = usersDict[vkMessageUserId].Nickname;
+                            }
+                        }
                     }
-                    else
-                    {
+
+                    if (string.IsNullOrEmpty(msg.SenderName) && !string.IsNullOrEmpty(vkGroup.Name))
                         msg.SenderName = vkGroup.Name;
-                    }
+
                     wallPostStack.Push(msg);
                 }
             }
             foreach (var m in wallPostStack)
             {
-                Console.WriteLine(m.MsgText);
-            }*/
+                Console.WriteLine("Sender: " + m.SenderName);
+                Console.WriteLine("Text: " + m.MsgText);
+            }
+
             return true;
         }
 
