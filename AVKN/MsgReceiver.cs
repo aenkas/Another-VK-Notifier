@@ -229,6 +229,7 @@ namespace AVKN
             return true;
         }
 
+        // Получение пользователей из списка userIdsToGet и добавление в usersDict
         void ReceiveNewUsers(List<long> userIdsToGet)
         {
             try
@@ -245,6 +246,7 @@ namespace AVKN
             }
         }
 
+        // Формирование сообщений
         void FormMessagesFromVkMessages(MessagesGetObject vkMessages)
         {
             foreach (var vkMessage in vkMessages.Messages)
@@ -309,6 +311,7 @@ namespace AVKN
             }
         }
 
+        // Формирование постов в группах
         void FormMessagesFromVkPosts(List<Post> vkPostsToProcess)
         {
             foreach (var vkPost in vkPostsToProcess)
@@ -331,7 +334,7 @@ namespace AVKN
 
                 msg.MsgType = MsgTypes.Group;
                 msg.MsgText = vkPost.Text;
-                msg.MsgUrl = //"https://vk.com/" + groupOrUserName + "?w=wall" + vkGroup.Id + "_" + post.Id + "%2Fall";
+                msg.MsgUrl = "https://vk.com/" + groupOrUserName + "?w=wall-" + Math.Abs(vkPost.OwnerId.Value) + "_" + vkPost.Id;
                 msg.DomainUrl = "https://vk.com/" + groupOrUserName;
                 msg.Id = -receivedPostsCounter;
                 receivedPostsCounter--;
