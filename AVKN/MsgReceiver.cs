@@ -47,6 +47,15 @@ namespace AVKN
 
         public bool LogInVk(string login, string password)
         {
+            ClearMsgStack();
+            usersDict.Clear();
+            groupNamesDict.Clear();
+            receivedPostsCounter = -1;
+            vkGroups = null;
+            vkGroupsCount = 0;
+            currentVkGroup = 0;
+            lastReceivingDateForGroups.Clear();
+
             try
             {
                 var auth = new ApiAuthParams();
@@ -177,7 +186,10 @@ namespace AVKN
 
                     currentVkGroup = 0;
 
-                    continue;
+                    if (vkGroupsCount == 0)
+                        break;
+                    else
+                        continue;
                 }
 
                 Group vkGroup = vkGroups[currentVkGroup];
