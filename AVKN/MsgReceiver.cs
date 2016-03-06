@@ -218,6 +218,19 @@ namespace AVKN
             }
 
             // Получение списка userIdsToGet
+            ReceiveNewUsers(userIdsToGet);
+
+            // Формирование сообщений
+            FormMessagesFromVkMessages(vkMessages);
+
+            // Формирование постов в группах
+            FormMessagesFromVkPosts(vkPostsToProcess);
+
+            return true;
+        }
+
+        void ReceiveNewUsers(List<long> userIdsToGet)
+        {
             try
             {
                 var vkUsers = vk.Users.Get(userIdsToGet);
@@ -230,8 +243,10 @@ namespace AVKN
             catch (Exception)
             {
             }
+        }
 
-            // Формирование сообщений
+        void FormMessagesFromVkMessages(MessagesGetObject vkMessages)
+        {
             foreach (var vkMessage in vkMessages.Messages)
             {
                 long vkMessageUserId = 0;
@@ -292,8 +307,10 @@ namespace AVKN
                 messageStack.Push(msg);
                 //break;
             }
+        }
 
-            // Формирование постов в группах
+        void FormMessagesFromVkPosts(List<Post> vkPostsToProcess)
+        {
             foreach (var vkPost in vkPostsToProcess)
             {
                 Message msg = new Message();
@@ -347,8 +364,6 @@ namespace AVKN
 
                 messageStack.Push(msg);
             }
-
-            return true;
         }
 
         public int GetMessagesCount()
