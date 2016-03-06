@@ -8,7 +8,6 @@ using VkNet.Categories;
 using VkNet.Utils;
 using VkNet.Model;
 using VkNet.Model.Attachments;
-using VkNet.Model.Auth;
 using VkNet.Model.RequestParams;
 using VkNet.Enums;
 using VkNet.Enums.Filters;

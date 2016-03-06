@@ -78,8 +78,8 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="VkNet, Version=1.20.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\VkNet.1.20.0\lib\net40\VkNet.dll</HintPath>
+    <Reference Include="VkNet, Version=1.21.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\VkNet.1.21.0\lib\net40\VkNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
