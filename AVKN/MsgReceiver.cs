@@ -279,8 +279,8 @@ namespace AVKN
 
                     msg.MsgType = MsgTypes.Group;
                     msg.MsgText = post.Text;
-                    msg.MsgUrl = "https://vk.com/" + vkGroup.Name + "?w=wall" + vkGroup.Id + "_" + post.Id + "%2Fall";
-                    msg.DomainUrl = "https://vk.com/" + vkGroup.Name;
+                    msg.MsgUrl = //"https://vk.com/club" + vkGroupId + "?w=wall" + vkGroup.Id + "_" + post.Id + "%2Fall";
+                    msg.DomainUrl = "https://vk.com/club" + vkGroupId;
                     msg.Id = -receivedPostsCounter;
                     receivedPostsCounter--;
 
