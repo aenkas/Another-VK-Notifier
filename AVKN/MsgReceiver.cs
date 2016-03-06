@@ -37,6 +37,7 @@ namespace AVKN
         private Stack<Message> messageStack = new Stack<Message>();
         private VkApi vk = new VkApi();
         Dictionary<long, VkNet.Model.User> usersDict;
+        Dictionary<long, string> groupNamesDict;
         //private HashSet<long> viewedGroups = new HashSet<long>();
         int receivedPostsCounter = -1;
         System.Collections.ObjectModel.ReadOnlyCollection<Group> vkGroups;
@@ -93,6 +94,7 @@ namespace AVKN
                 return false;
 
             List<long> userIdsToGet = new List<long>();
+            List<Post> vkPostsToProcess = new List<Post>();
 
             // Чтение сообщений
             MessagesGetParams vkMsgParams = new MessagesGetParams();
@@ -112,17 +114,7 @@ namespace AVKN
                 return false;
             }
 
-            // Чтение постов в группах
-            /*Group vkGroups = vk.Groups.Get(vk.UserId.Value);
-
-            foreach (var vkGroup in vkGroups)
-            {
-                WallGetParams vkWallParams = new WallGetParams();
-
-                WallGetObject vkWalls = vk.Wall.Get(vkWallParams);
-            }*/
-
-            // Получение списка userIdsToGet - id пользователей, которых надо получить с сервера
+            // Составление списка userIdsToGet (id пользователей, которых надо получить с сервера) из сообщений
             foreach (var vkMessage in vkMessages.Messages)
             {
                 long vkMessageUserId;
@@ -136,6 +128,96 @@ namespace AVKN
                 }
             }
 
+            // Чтение постов в группах
+            for (int i = 0; i < 3; i++)
+            {
+                if (currentVkGroup == vkGroupsCount)
+                {
+                    try
+                    {
+                        GroupsGetParams vkGroupsParams = new GroupsGetParams();
+
+                        vkGroupsParams.UserId = vk.UserId.Value;
+                        vkGroupsParams.Extended = true;
+
+                        var newVkGroups = vk.Groups.Get(vkGroupsParams);
+
+                        vkGroups = newVkGroups;
+                        vkGroupsCount = vkGroups.Count;
+                    }
+                    catch
+                    {
+                    }
+
+                    currentVkGroup = 0;
+
+                    continue;
+                }
+
+                Group vkGroup = vkGroups[currentVkGroup];
+                long vkGroupId = vkGroup.Id;
+
+                //Console.WriteLine("vkGroup.Name " + vkGroup.Name);
+
+                if (!string.IsNullOrEmpty(vkGroup.Name))
+                {
+                    groupNamesDict[vkGroupId] = vkGroup.Name;
+                }
+
+                currentVkGroup++;
+
+                if (lastReceivingDateForGroups.ContainsKey(vkGroupId) == false)
+                    lastReceivingDateForGroups[vkGroupId] = DateTime.Now;
+
+                WallGetParams vkWallParams = new WallGetParams();
+
+                vkWallParams.Count = 50;
+                vkWallParams.Offset = 0;
+                vkWallParams.OwnerId = -vkGroup.Id; // needs to be negative
+
+                WallGetObject vkWalls = null;
+
+                try // useless, but it would throw an exception if the user is not a member (was deleted) or the group id is wrong.
+                {
+                    vkWalls = vk.Wall.Get(vkWallParams);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+
+                var posts = vkWalls.WallPosts;
+                foreach (var post in posts)
+                {
+                    if (post.Date.HasValue)
+                    {
+                        //Console.WriteLine("post.Date " + post.Date.Value.ToString() + " lastReceivingDateForGroups[vkGroupId] " + lastReceivingDateForGroups[vkGroupId].ToString());
+
+                        if (post.Date.Value <= lastReceivingDateForGroups[vkGroupId])
+                            continue;
+
+                        if (post.Date.Value > lastReceivingDateForGroups[vkGroupId])
+                            lastReceivingDateForGroups[vkGroupId] = post.Date.Value;
+                    }
+                    else continue;
+
+                    // Составление списка userIdsToGet (id пользователей, которых надо получить с сервера) из постов
+                    if (post.FromId.HasValue)
+                    {
+                        if (post.FromId.Value > 0)
+                        {
+                            long vkMessageUserId = post.FromId.Value;
+
+                            if ((!usersDict.ContainsKey(vkMessageUserId)) && (!userIdsToGet.Contains(vkMessageUserId)))
+                                userIdsToGet.Add(vkMessageUserId);
+                        }
+                    }
+
+                    vkPostsToProcess.Add(post);
+                }
+            }
+
+            // Получение списка userIdsToGet
             try
             {
                 var vkUsers = vk.Users.Get(userIdsToGet);
@@ -149,6 +231,7 @@ namespace AVKN
             {
             }
 
+            // Формирование сообщений
             foreach (var vkMessage in vkMessages.Messages)
             {
                 long vkMessageUserId = 0;
@@ -210,104 +293,59 @@ namespace AVKN
                 //break;
             }
 
-            //Group vkGroups = vk.Groups.Get(vk.UserId.Value);
-            //if (viewedGroups.Count == vkGroups.Count) viewedGroups.Clear();
-            //int count = 0;
-            //foreach (var vkGroup in vkGroups)
-            for (int i = 0; i < 3; i++)
+            // Формирование постов в группах
+            foreach (var vkPost in vkPostsToProcess)
             {
-                if (currentVkGroup == vkGroupsCount)
-                {
-                    try
-                    {
-                        var newVkGroups = vk.Groups.Get(vk.UserId.Value);
+                Message msg = new Message();
+                string groupOrUserName;
+                long senderId;
 
-                        vkGroups = newVkGroups;
-                        vkGroupsCount = vkGroups.Count;
-                    }
-                    catch
-                    {
-                    }
-                    
-                    currentVkGroup = 0;
-
+                if (!vkPost.OwnerId.HasValue)
                     continue;
+
+                if (vkPost.OwnerId.Value < 0)
+                {
+                    groupOrUserName = "club" + (-vkPost.OwnerId.Value);
+                }
+                else
+                {
+                    groupOrUserName = "id" + vkPost.OwnerId.Value;
                 }
 
-                Group vkGroup = vkGroups[currentVkGroup];
-                long vkGroupId = vkGroup.Id;
+                msg.MsgType = MsgTypes.Group;
+                msg.MsgText = vkPost.Text;
+                msg.MsgUrl = //"https://vk.com/" + groupOrUserName + "?w=wall" + vkGroup.Id + "_" + post.Id + "%2Fall";
+                msg.DomainUrl = "https://vk.com/" + groupOrUserName;
+                msg.Id = -receivedPostsCounter;
+                receivedPostsCounter--;
 
-                currentVkGroup++;
+                if (vkPost.FromId.HasValue)
+                    senderId = vkPost.FromId.Value;
+                else
+                    senderId = vkPost.OwnerId.Value;
 
-                if (lastReceivingDateForGroups.ContainsKey(vkGroupId) == false)
-                    lastReceivingDateForGroups[vkGroupId] = DateTime.Now;
-
-                //if (count == 3) break;
-                //if (viewedGroups.Contains(vkGroup.Id)) continue;
-                //viewedGroups.Add(vkGroup.Id);
-                WallGetParams vkWallParams = new WallGetParams();
-                //count++;
-                vkWallParams.Count = 50;
-                vkWallParams.Offset = 0;
-                vkWallParams.OwnerId = -vkGroup.Id; // needs to be negative
-                WallGetObject vkWalls = null;
-                try // useless, but it would throw an exception if the user is not a member (was deleted) or the group id is wrong.
+                if (senderId > 0)
                 {
-                    vkWalls = vk.Wall.Get(vkWallParams);
-                }
-                catch (Exception)
-                {
-                    continue;
-                }
-
-                var posts = vkWalls.WallPosts;
-                foreach (var post in posts)
-                {
-                    if (post.Date.HasValue)
+                    if (usersDict.ContainsKey(senderId))
                     {
-                        //Console.WriteLine("post.Date " + post.Date.Value.ToString() + " lastReceivingDateForGroups[vkGroupId] " + lastReceivingDateForGroups[vkGroupId].ToString());
-                        
-                        if (post.Date.Value <= lastReceivingDateForGroups[vkGroupId])
-                            continue;
-
-                        if (post.Date.Value > lastReceivingDateForGroups[vkGroupId])
-                            lastReceivingDateForGroups[vkGroupId] = post.Date.Value;
+                        if ((usersDict[senderId].FirstName != null) && (usersDict[senderId].LastName != null))
+                            msg.SenderName = usersDict[senderId].FirstName + " " + usersDict[senderId].LastName;
+                        else if (usersDict[senderId].Nickname != null)
+                            msg.SenderName = usersDict[senderId].Nickname;
                     }
-                    else continue;
-
-                    Message msg = new Message();
-
-                    msg.MsgType = MsgTypes.Group;
-                    msg.MsgText = post.Text;
-                    msg.MsgUrl = //"https://vk.com/club" + vkGroupId + "?w=wall" + vkGroup.Id + "_" + post.Id + "%2Fall";
-                    msg.DomainUrl = "https://vk.com/club" + vkGroupId;
-                    msg.Id = -receivedPostsCounter;
-                    receivedPostsCounter--;
-
-                    if (post.FromId.HasValue)
-                    {
-                        if (post.FromId.Value > 0)
-                        {
-                            long vkMessageUserId = post.FromId.Value;
-
-                            if (usersDict.ContainsKey(vkMessageUserId))
-                            {
-                                if ((usersDict[vkMessageUserId].FirstName != null) && (usersDict[vkMessageUserId].LastName != null))
-                                    msg.SenderName = usersDict[vkMessageUserId].FirstName + " " + usersDict[vkMessageUserId].LastName;
-                                else if (usersDict[vkMessageUserId].Nickname != null)
-                                    msg.SenderName = usersDict[vkMessageUserId].Nickname;
-                            }
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(msg.SenderName) && !string.IsNullOrEmpty(vkGroup.Name))
-                        msg.SenderName = vkGroup.Name;
-
-                    //Console.WriteLine("Sender: " + msg.SenderName);
-                    //Console.WriteLine("Text: " + msg.MsgText);
-
-                    messageStack.Push(msg);
                 }
+                else
+                {
+                    if (groupNamesDict.ContainsKey(-senderId))
+                    {
+                        msg.SenderName = groupNamesDict[-senderId];
+                    }
+                }
+
+                //Console.WriteLine("Sender: " + msg.SenderName);
+                //Console.WriteLine("Text: " + msg.MsgText);
+
+                messageStack.Push(msg);
             }
 
             return true;
@@ -334,6 +372,7 @@ namespace AVKN
         public MsgReceiver()
         {
             usersDict = new Dictionary<long, VkNet.Model.User>();
+            groupNamesDict = new Dictionary<long, string>();
             lastReceivingDateForGroups = new Dictionary<long,DateTime>();
         }
     }
