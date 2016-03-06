@@ -35,7 +35,6 @@ namespace AVKN
     {
         private bool isLogged;
         private Stack<Message> messageStack = new Stack<Message>();
-        private Stack<Message> wallPostStack = new Stack<Message>();
         private VkApi vk = new VkApi();
         Dictionary<long, VkNet.Model.User> usersDict;
         //private HashSet<long> viewedGroups = new HashSet<long>();
@@ -43,6 +42,7 @@ namespace AVKN
         System.Collections.ObjectModel.ReadOnlyCollection<Group> vkGroups;
         int vkGroupsCount = 0;
         int currentVkGroup = 0;
+        Dictionary<long, DateTime> lastReceivingDateForGroups;
 
         public bool LogInVk(string login, string password)
         {
@@ -76,6 +76,9 @@ namespace AVKN
             {
                 return false;
             }
+
+            //lastReceivingDate = DateTime.Now;
+
             return (isLogged = true);
         }
 
@@ -151,8 +154,11 @@ namespace AVKN
                 long vkMessageUserId = 0;
 
                 if (vkMessage.ReadState.HasValue)
+                {
                     if (vkMessage.ReadState.Value == MessageReadState.Readed)
                         continue;
+                }
+                else continue;
 
                 Message msg = new Message();
 
@@ -212,17 +218,29 @@ namespace AVKN
             {
                 if (currentVkGroup == vkGroupsCount)
                 {
-                    vkGroups = vk.Groups.Get(vk.UserId.Value);
+                    try
+                    {
+                        var newVkGroups = vk.Groups.Get(vk.UserId.Value);
 
-                    vkGroupsCount = vkGroups.Count;
+                        vkGroups = newVkGroups;
+                        vkGroupsCount = vkGroups.Count;
+                    }
+                    catch
+                    {
+                    }
+                    
                     currentVkGroup = 0;
 
                     continue;
                 }
 
                 Group vkGroup = vkGroups[currentVkGroup];
+                long vkGroupId = vkGroup.Id;
 
                 currentVkGroup++;
+
+                if (lastReceivingDateForGroups.ContainsKey(vkGroupId) == false)
+                    lastReceivingDateForGroups[vkGroupId] = DateTime.Now;
 
                 //if (count == 3) break;
                 //if (viewedGroups.Contains(vkGroup.Id)) continue;
@@ -245,6 +263,18 @@ namespace AVKN
                 var posts = vkWalls.WallPosts;
                 foreach (var post in posts)
                 {
+                    if (post.Date.HasValue)
+                    {
+                        //Console.WriteLine("post.Date " + post.Date.Value.ToString() + " lastReceivingDateForGroups[vkGroupId] " + lastReceivingDateForGroups[vkGroupId].ToString());
+                        
+                        if (post.Date.Value <= lastReceivingDateForGroups[vkGroupId])
+                            continue;
+
+                        if (post.Date.Value > lastReceivingDateForGroups[vkGroupId])
+                            lastReceivingDateForGroups[vkGroupId] = post.Date.Value;
+                    }
+                    else continue;
+
                     Message msg = new Message();
 
                     msg.MsgType = MsgTypes.Group;
@@ -259,9 +289,6 @@ namespace AVKN
                         if (post.FromId.Value > 0)
                         {
                             long vkMessageUserId = post.FromId.Value;
-                            /*var user = vk.Users.Get(vkMessageUserId);
-
-                            msg.SenderName = user.FirstName + " " + user.LastName;*/
 
                             if (usersDict.ContainsKey(vkMessageUserId))
                             {
@@ -276,13 +303,11 @@ namespace AVKN
                     if (string.IsNullOrEmpty(msg.SenderName) && !string.IsNullOrEmpty(vkGroup.Name))
                         msg.SenderName = vkGroup.Name;
 
-                    wallPostStack.Push(msg);
+                    //Console.WriteLine("Sender: " + msg.SenderName);
+                    //Console.WriteLine("Text: " + msg.MsgText);
+
+                    messageStack.Push(msg);
                 }
-            }
-            foreach (var m in wallPostStack)
-            {
-                Console.WriteLine("Sender: " + m.SenderName);
-                Console.WriteLine("Text: " + m.MsgText);
             }
 
             return true;
@@ -309,6 +334,7 @@ namespace AVKN
         public MsgReceiver()
         {
             usersDict = new Dictionary<long, VkNet.Model.User>();
+            lastReceivingDateForGroups = new Dictionary<long,DateTime>();
         }
     }
 }
