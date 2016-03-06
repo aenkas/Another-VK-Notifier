@@ -94,9 +94,31 @@ namespace AVKN
                 return false;
 
             List<long> userIdsToGet = new List<long>();
+            MessagesGetObject vkMessages = null;
             List<Post> vkPostsToProcess = new List<Post>();
 
-            // Чтение сообщений
+            // Получение сообщений
+            if (!ReceiveMessages(userIdsToGet, ref vkMessages))
+                return false;
+
+            // Получение постов в группах
+            ReceiveGroupPosts(userIdsToGet, vkPostsToProcess);
+
+            // Получение списка userIdsToGet
+            ReceiveNewUsers(userIdsToGet);
+
+            // Формирование сообщений
+            FormMessagesFromVkMessages(vkMessages);
+
+            // Формирование постов в группах
+            FormMessagesFromVkPosts(vkPostsToProcess);
+
+            return true;
+        }
+
+        // Получение сообщений и составление списка userIdsToGet
+        bool ReceiveMessages(List<long> userIdsToGet, ref MessagesGetObject vkMessages)
+        {
             MessagesGetParams vkMsgParams = new MessagesGetParams();
 
             vkMsgParams.Count = 100;
@@ -104,7 +126,6 @@ namespace AVKN
             vkMsgParams.TimeOffset = 0;
             vkMsgParams.Filters = MessagesFilter.All;
 
-            MessagesGetObject vkMessages;
             try
             {
                 vkMessages = vk.Messages.Get(vkMsgParams);//vk.Messages.Get(0, out offset, 100, 0, new TimeSpan(0), 0);
@@ -128,7 +149,12 @@ namespace AVKN
                 }
             }
 
-            // Чтение постов в группах
+            return true;
+        }
+
+        // Получение постов в группах и составление списка userIdsToGet
+        void ReceiveGroupPosts(List<long> userIdsToGet, List<Post> vkPostsToProcess)
+        {
             for (int i = 0; i < 3; i++)
             {
                 if (currentVkGroup == vkGroupsCount)
@@ -216,17 +242,6 @@ namespace AVKN
                     vkPostsToProcess.Add(post);
                 }
             }
-
-            // Получение списка userIdsToGet
-            ReceiveNewUsers(userIdsToGet);
-
-            // Формирование сообщений
-            FormMessagesFromVkMessages(vkMessages);
-
-            // Формирование постов в группах
-            FormMessagesFromVkPosts(vkPostsToProcess);
-
-            return true;
         }
 
         // Получение пользователей из списка userIdsToGet и добавление в usersDict
